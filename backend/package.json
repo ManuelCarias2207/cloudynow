@@ -1,0 +1,19 @@
+{
+  "name": "siembra-satelital-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Stateless API that compares crop rotations for El Salvador's Dry Corridor using NASA data.",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "test": "node --test",
+    "data:power": "python scripts/preprocess/fetch_nasa_power.py",
+    "data:ndvi": "python scripts/preprocess/fetch_earthdata.py",
+    "data:build": "python scripts/preprocess/build_climate_summary.py"
+  },
+  "engines": {
+    "node": ">=20.12"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,35 @@
+{
+  "_note": "Crop traits table used by the transparent scoring engine. Values are relative (0 = low, 1 = high), compiled from general agronomic references for Central America. All values MUST be validated with a local agricultural technician before real-world use.",
+  "toValidate": true,
+  "traits": {
+    "waterNeed": "Relative water demand during the cycle",
+    "droughtTolerance": "Ability to yield under dry spells",
+    "heatTolerance": "Ability to yield above 35 °C",
+    "soilBenefit": "Contribution to soil fertility and organic matter",
+    "erosionCover": "Ground cover that protects soil from erosion",
+    "incomeValue": "Relative income potential per area",
+    "localMarket": "Ease of selling or consuming locally"
+  },
+  "crops": [
+    { "id": "maize", "name": "Maize", "localName": "Maíz", "categories": ["staple"], "waterNeed": 0.7, "droughtTolerance": 0.3, "heatTolerance": 0.4, "soilBenefit": 0.1, "erosionCover": 0.3, "incomeValue": 0.5, "localMarket": 0.9, "cycleDays": 120, "fixesNitrogen": false },
+    { "id": "bean", "name": "Common bean", "localName": "Frijol", "categories": ["staple", "legume"], "waterNeed": 0.5, "droughtTolerance": 0.35, "heatTolerance": 0.3, "soilBenefit": 0.5, "erosionCover": 0.3, "incomeValue": 0.6, "localMarket": 0.9, "cycleDays": 75, "fixesNitrogen": true },
+    { "id": "coffee", "name": "Coffee", "localName": "Café", "categories": ["cash", "perennial"], "waterNeed": 0.7, "droughtTolerance": 0.3, "heatTolerance": 0.2, "soilBenefit": 0.4, "erosionCover": 0.7, "incomeValue": 0.8, "localMarket": 0.7, "cycleDays": 365, "fixesNitrogen": false },
+    { "id": "vegetables", "name": "Vegetables (tomato, pepper)", "localName": "Hortalizas", "categories": ["cash"], "waterNeed": 0.85, "droughtTolerance": 0.2, "heatTolerance": 0.3, "soilBenefit": 0.1, "erosionCover": 0.2, "incomeValue": 0.9, "localMarket": 0.7, "cycleDays": 90, "fixesNitrogen": false },
+    { "id": "sorghum", "name": "Sorghum", "localName": "Maicillo", "categories": ["staple", "drought-tolerant"], "waterNeed": 0.35, "droughtTolerance": 0.8, "heatTolerance": 0.75, "soilBenefit": 0.2, "erosionCover": 0.4, "incomeValue": 0.5, "localMarket": 0.8, "cycleDays": 110, "fixesNitrogen": false },
+    { "id": "sesame", "name": "Sesame", "localName": "Ajonjolí", "categories": ["cash", "drought-tolerant"], "waterNeed": 0.3, "droughtTolerance": 0.8, "heatTolerance": 0.8, "soilBenefit": 0.15, "erosionCover": 0.25, "incomeValue": 0.75, "localMarket": 0.5, "cycleDays": 100, "fixesNitrogen": false },
+    { "id": "cassava", "name": "Cassava", "localName": "Yuca", "categories": ["staple", "drought-tolerant"], "waterNeed": 0.35, "droughtTolerance": 0.75, "heatTolerance": 0.7, "soilBenefit": 0.15, "erosionCover": 0.35, "incomeValue": 0.55, "localMarket": 0.7, "cycleDays": 300, "fixesNitrogen": false },
+    { "id": "pigeon-pea", "name": "Pigeon pea", "localName": "Gandul", "categories": ["legume", "drought-tolerant"], "waterNeed": 0.3, "droughtTolerance": 0.85, "heatTolerance": 0.75, "soilBenefit": 0.7, "erosionCover": 0.6, "incomeValue": 0.5, "localMarket": 0.5, "cycleDays": 180, "fixesNitrogen": true },
+    { "id": "jack-bean", "name": "Jack bean", "localName": "Canavalia", "categories": ["cover", "legume"], "waterNeed": 0.3, "droughtTolerance": 0.8, "heatTolerance": 0.7, "soilBenefit": 0.85, "erosionCover": 0.8, "incomeValue": 0.15, "localMarket": 0.2, "cycleDays": 150, "fixesNitrogen": true },
+    { "id": "velvet-bean", "name": "Velvet bean", "localName": "Mucuna / frijol abono", "categories": ["cover", "legume"], "waterNeed": 0.45, "droughtTolerance": 0.6, "heatTolerance": 0.6, "soilBenefit": 0.9, "erosionCover": 0.9, "incomeValue": 0.1, "localMarket": 0.1, "cycleDays": 150, "fixesNitrogen": true },
+    { "id": "cowpea", "name": "Cowpea", "localName": "Frijol de vara / caupí", "categories": ["cover", "legume"], "waterNeed": 0.35, "droughtTolerance": 0.75, "heatTolerance": 0.7, "soilBenefit": 0.7, "erosionCover": 0.6, "incomeValue": 0.45, "localMarket": 0.6, "cycleDays": 75, "fixesNitrogen": true }
+  ],
+  "currentSystems": [
+    { "id": "maize-bean", "name": "Maize + bean", "crops": ["maize", "bean"] },
+    { "id": "coffee", "name": "Coffee", "crops": ["coffee"] },
+    { "id": "vegetables", "name": "Vegetables", "crops": ["vegetables"] }
+  ],
+  "strategyCandidates": {
+    "cover": ["jack-bean", "velvet-bean", "cowpea", "pigeon-pea"],
+    "droughtTolerant": ["sorghum", "sesame", "cassava", "pigeon-pea"]
+  }
+}

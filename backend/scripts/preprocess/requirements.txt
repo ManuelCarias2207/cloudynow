@@ -1,0 +1,3 @@
+requests>=2.31
+# Optional: only needed for `fetch_earthdata.py --search-granules` (SMAP / GPM IMERG granule search)
+earthaccess>=0.9

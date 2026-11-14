@@ -1,0 +1,445 @@
+{
+  "generatedAt": "2026-11-14T20:59:31+00:00",
+  "units": {
+    "rainMm": "mm/month",
+    "soilMoisture": "0-1 root-zone wetness (GWETROOT)",
+    "tMaxC": "°C",
+    "ndvi": "0-1"
+  },
+  "zones": {
+    "chalatenango": {
+      "zoneId": "chalatenango",
+      "monthly": [
+        {
+          "month": 1,
+          "rainMm": 29.4,
+          "soilMoisture": 0.514,
+          "tMaxC": 30.1,
+          "ndvi": null
+        },
+        {
+          "month": 2,
+          "rainMm": 32.8,
+          "soilMoisture": 0.485,
+          "tMaxC": 32.0,
+          "ndvi": null
+        },
+        {
+          "month": 3,
+          "rainMm": 67.7,
+          "soilMoisture": 0.466,
+          "tMaxC": 33.6,
+          "ndvi": null
+        },
+        {
+          "month": 4,
+          "rainMm": 38.5,
+          "soilMoisture": 0.455,
+          "tMaxC": 33.8,
+          "ndvi": null
+        },
+        {
+          "month": 5,
+          "rainMm": 168.3,
+          "soilMoisture": 0.501,
+          "tMaxC": 31.1,
+          "ndvi": null
+        },
+        {
+          "month": 6,
+          "rainMm": 211.5,
+          "soilMoisture": 0.594,
+          "tMaxC": 28.7,
+          "ndvi": null
+        },
+        {
+          "month": 7,
+          "rainMm": 111.3,
+          "soilMoisture": 0.576,
+          "tMaxC": 30.6,
+          "ndvi": null
+        },
+        {
+          "month": 8,
+          "rainMm": 172.1,
+          "soilMoisture": 0.576,
+          "tMaxC": 30.1,
+          "ndvi": null
+        },
+        {
+          "month": 9,
+          "rainMm": 238.7,
+          "soilMoisture": 0.637,
+          "tMaxC": 28.4,
+          "ndvi": null
+        },
+        {
+          "month": 10,
+          "rainMm": 206.9,
+          "soilMoisture": 0.695,
+          "tMaxC": 27.5,
+          "ndvi": null
+        },
+        {
+          "month": 11,
+          "rainMm": 91.3,
+          "soilMoisture": 0.659,
+          "tMaxC": 28.1,
+          "ndvi": null
+        },
+        {
+          "month": 12,
+          "rainMm": 75.1,
+          "soilMoisture": 0.583,
+          "tMaxC": 29.0,
+          "ndvi": null
+        }
+      ],
+      "indicators": {
+        "annualRainMm": 1444.0,
+        "rainVariabilityCv": 0.215,
+        "longestDrySpellDays": 6.9,
+        "soilMoistureMean": 0.562,
+        "soilMoistureAnomaly": -0.024,
+        "extremeHeatDaysPerYear": 31.1,
+        "bareFieldWindow": {
+          "months": [
+            1,
+            2,
+            4
+          ],
+          "method": "Proxy: NASA POWER monthly rain < 50 mm (NDVI not available)"
+        }
+      },
+      "sources": [
+        {
+          "dataset": "NASA POWER (daily, community AG)",
+          "parameters": [
+            "PRECTOTCORR",
+            "T2M_MAX",
+            "GWETROOT"
+          ],
+          "period": "2014-2023",
+          "url": "https://power.larc.nasa.gov/"
+        }
+      ],
+      "dataGaps": [
+        {
+          "key": "soil_type",
+          "label": "Local soil type and fertility",
+          "reason": "Not observable from NASA satellite products at farm scale."
+        },
+        {
+          "key": "market_prices",
+          "label": "Local market prices",
+          "reason": "Economic data is outside NASA datasets."
+        },
+        {
+          "key": "pests",
+          "label": "Pests and diseases",
+          "reason": "Requires field observation by the farmer or local technician."
+        },
+        {
+          "key": "ndvi",
+          "label": "Vegetation index (NDVI)",
+          "reason": "MODIS NDVI not yet processed for this zone."
+        },
+        {
+          "key": "smap",
+          "label": "Satellite soil moisture (SMAP)",
+          "reason": "Soil moisture uses NASA POWER GWETROOT (model-based) until SMAP is processed."
+        }
+      ]
+    },
+    "morazan": {
+      "zoneId": "morazan",
+      "monthly": [
+        {
+          "month": 1,
+          "rainMm": 34.9,
+          "soilMoisture": 0.494,
+          "tMaxC": 28.2,
+          "ndvi": null
+        },
+        {
+          "month": 2,
+          "rainMm": 30.9,
+          "soilMoisture": 0.455,
+          "tMaxC": 30.4,
+          "ndvi": null
+        },
+        {
+          "month": 3,
+          "rainMm": 66.3,
+          "soilMoisture": 0.432,
+          "tMaxC": 32.3,
+          "ndvi": null
+        },
+        {
+          "month": 4,
+          "rainMm": 38.4,
+          "soilMoisture": 0.415,
+          "tMaxC": 32.7,
+          "ndvi": null
+        },
+        {
+          "month": 5,
+          "rainMm": 177.0,
+          "soilMoisture": 0.466,
+          "tMaxC": 30.1,
+          "ndvi": null
+        },
+        {
+          "month": 6,
+          "rainMm": 211.4,
+          "soilMoisture": 0.57,
+          "tMaxC": 27.5,
+          "ndvi": null
+        },
+        {
+          "month": 7,
+          "rainMm": 100.1,
+          "soilMoisture": 0.546,
+          "tMaxC": 29.3,
+          "ndvi": null
+        },
+        {
+          "month": 8,
+          "rainMm": 167.6,
+          "soilMoisture": 0.537,
+          "tMaxC": 29.1,
+          "ndvi": null
+        },
+        {
+          "month": 9,
+          "rainMm": 239.7,
+          "soilMoisture": 0.604,
+          "tMaxC": 27.5,
+          "ndvi": null
+        },
+        {
+          "month": 10,
+          "rainMm": 218.1,
+          "soilMoisture": 0.683,
+          "tMaxC": 26.4,
+          "ndvi": null
+        },
+        {
+          "month": 11,
+          "rainMm": 92.6,
+          "soilMoisture": 0.656,
+          "tMaxC": 26.6,
+          "ndvi": null
+        },
+        {
+          "month": 12,
+          "rainMm": 72.7,
+          "soilMoisture": 0.573,
+          "tMaxC": 27.2,
+          "ndvi": null
+        }
+      ],
+      "indicators": {
+        "annualRainMm": 1450.0,
+        "rainVariabilityCv": 0.225,
+        "longestDrySpellDays": 7.0,
+        "soilMoistureMean": 0.536,
+        "soilMoistureAnomaly": -0.023,
+        "extremeHeatDaysPerYear": 11.8,
+        "bareFieldWindow": {
+          "months": [
+            1,
+            2,
+            4
+          ],
+          "method": "Proxy: NASA POWER monthly rain < 50 mm (NDVI not available)"
+        }
+      },
+      "sources": [
+        {
+          "dataset": "NASA POWER (daily, community AG)",
+          "parameters": [
+            "PRECTOTCORR",
+            "T2M_MAX",
+            "GWETROOT"
+          ],
+          "period": "2014-2023",
+          "url": "https://power.larc.nasa.gov/"
+        }
+      ],
+      "dataGaps": [
+        {
+          "key": "soil_type",
+          "label": "Local soil type and fertility",
+          "reason": "Not observable from NASA satellite products at farm scale."
+        },
+        {
+          "key": "market_prices",
+          "label": "Local market prices",
+          "reason": "Economic data is outside NASA datasets."
+        },
+        {
+          "key": "pests",
+          "label": "Pests and diseases",
+          "reason": "Requires field observation by the farmer or local technician."
+        },
+        {
+          "key": "ndvi",
+          "label": "Vegetation index (NDVI)",
+          "reason": "MODIS NDVI not yet processed for this zone."
+        },
+        {
+          "key": "smap",
+          "label": "Satellite soil moisture (SMAP)",
+          "reason": "Soil moisture uses NASA POWER GWETROOT (model-based) until SMAP is processed."
+        }
+      ]
+    },
+    "la-union": {
+      "zoneId": "la-union",
+      "monthly": [
+        {
+          "month": 1,
+          "rainMm": 17.1,
+          "soilMoisture": 0.489,
+          "tMaxC": 32.8,
+          "ndvi": null
+        },
+        {
+          "month": 2,
+          "rainMm": 16.1,
+          "soilMoisture": 0.456,
+          "tMaxC": 34.4,
+          "ndvi": null
+        },
+        {
+          "month": 3,
+          "rainMm": 36.5,
+          "soilMoisture": 0.45,
+          "tMaxC": 35.4,
+          "ndvi": null
+        },
+        {
+          "month": 4,
+          "rainMm": 40.4,
+          "soilMoisture": 0.448,
+          "tMaxC": 35.1,
+          "ndvi": null
+        },
+        {
+          "month": 5,
+          "rainMm": 184.3,
+          "soilMoisture": 0.508,
+          "tMaxC": 32.6,
+          "ndvi": null
+        },
+        {
+          "month": 6,
+          "rainMm": 214.9,
+          "soilMoisture": 0.614,
+          "tMaxC": 30.5,
+          "ndvi": null
+        },
+        {
+          "month": 7,
+          "rainMm": 109.1,
+          "soilMoisture": 0.582,
+          "tMaxC": 32.6,
+          "ndvi": null
+        },
+        {
+          "month": 8,
+          "rainMm": 180.8,
+          "soilMoisture": 0.573,
+          "tMaxC": 32.1,
+          "ndvi": null
+        },
+        {
+          "month": 9,
+          "rainMm": 257.3,
+          "soilMoisture": 0.646,
+          "tMaxC": 30.2,
+          "ndvi": null
+        },
+        {
+          "month": 10,
+          "rainMm": 251.5,
+          "soilMoisture": 0.733,
+          "tMaxC": 29.3,
+          "ndvi": null
+        },
+        {
+          "month": 11,
+          "rainMm": 78.0,
+          "soilMoisture": 0.694,
+          "tMaxC": 30.1,
+          "ndvi": null
+        },
+        {
+          "month": 12,
+          "rainMm": 33.5,
+          "soilMoisture": 0.578,
+          "tMaxC": 31.3,
+          "ndvi": null
+        }
+      ],
+      "indicators": {
+        "annualRainMm": 1420.0,
+        "rainVariabilityCv": 0.184,
+        "longestDrySpellDays": 6.7,
+        "soilMoistureMean": 0.564,
+        "soilMoistureAnomaly": -0.03,
+        "extremeHeatDaysPerYear": 65.1,
+        "bareFieldWindow": {
+          "months": [
+            1,
+            2,
+            3,
+            4,
+            12
+          ],
+          "method": "Proxy: NASA POWER monthly rain < 50 mm (NDVI not available)"
+        }
+      },
+      "sources": [
+        {
+          "dataset": "NASA POWER (daily, community AG)",
+          "parameters": [
+            "PRECTOTCORR",
+            "T2M_MAX",
+            "GWETROOT"
+          ],
+          "period": "2014-2023",
+          "url": "https://power.larc.nasa.gov/"
+        }
+      ],
+      "dataGaps": [
+        {
+          "key": "soil_type",
+          "label": "Local soil type and fertility",
+          "reason": "Not observable from NASA satellite products at farm scale."
+        },
+        {
+          "key": "market_prices",
+          "label": "Local market prices",
+          "reason": "Economic data is outside NASA datasets."
+        },
+        {
+          "key": "pests",
+          "label": "Pests and diseases",
+          "reason": "Requires field observation by the farmer or local technician."
+        },
+        {
+          "key": "ndvi",
+          "label": "Vegetation index (NDVI)",
+          "reason": "MODIS NDVI not yet processed for this zone."
+        },
+        {
+          "key": "smap",
+          "label": "Satellite soil moisture (SMAP)",
+          "reason": "Soil moisture uses NASA POWER GWETROOT (model-based) until SMAP is processed."
+        }
+      ]
+    }
+  }
+}

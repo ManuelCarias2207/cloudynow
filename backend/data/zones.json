@@ -1,0 +1,35 @@
+{
+  "_note": "Pilot zones in El Salvador's Dry Corridor. Coordinates are representative points for NASA data extraction; confirm final zones with the team and local technicians. NASA POWER uses a ~0.5 x 0.625 degree grid, so each zone must fall in a different grid cell to get distinct data.",
+  "zones": [
+    {
+      "id": "chalatenango",
+      "name": "Chalatenango",
+      "department": "Chalatenango",
+      "country": "SV",
+      "lat": 14.04,
+      "lon": -88.94,
+      "elevationM": 400,
+      "description": "Northern hillside farms; maize-bean on slopes with high erosion risk."
+    },
+    {
+      "id": "morazan",
+      "name": "Corinto",
+      "department": "Morazán",
+      "country": "SV",
+      "lat": 13.81,
+      "lon": -87.97,
+      "elevationM": 600,
+      "description": "Northern Morazán hills in the eastern Dry Corridor; long mid-summer drought (canícula) and subsistence maize-bean."
+    },
+    {
+      "id": "la-union",
+      "name": "Santa Rosa de Lima",
+      "department": "La Unión",
+      "country": "SV",
+      "lat": 13.62,
+      "lon": -87.89,
+      "elevationM": 120,
+      "description": "Hot lowlands near the Gulf of Fonseca; frequent extreme heat days."
+    }
+  ]
+}
