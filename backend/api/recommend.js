@@ -8,3 +8,6 @@ export default createHandler(['POST'], async (req, res) => {
   const input = validateRecommendBody(req.body, { zones: await loadZones(), crops: await loadCrops() });
   sendJson(res, 200, await recommend(input));
 });
+
+
+

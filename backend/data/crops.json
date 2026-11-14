@@ -8,3 +8,8 @@
   { "id": "squash", "name": "Squash (ayote)", "waterDemand": "medium", "droughtTolerance": "medium", "fixesNitrogen": false, "soilCover": "high", "cycleMonths": 4, "incomePotential": "medium", "needsValidation": true },
   { "id": "cassava", "name": "Cassava (yuca)", "waterDemand": "low", "droughtTolerance": "high", "fixesNitrogen": false, "soilCover": "medium", "cycleMonths": 10, "incomePotential": "medium", "needsValidation": true }
 ]
+
+
+
+
+

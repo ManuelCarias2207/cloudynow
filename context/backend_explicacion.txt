@@ -1,0 +1,399 @@
+================================================================================
+  SIEMBRA SATELITAL - BACKEND
+  Qué se construyó, qué hace cada archivo y cómo funciona todo
+================================================================================
+
+Commit: c399407 (rama main, todavía sin subir a GitHub)
+Carpeta: cloudynow/backend
+Pruebas: 53 de 53 pasan (npm test)
+
+
+--------------------------------------------------------------------------------
+1. LA IDEA EN UNA FRASE
+--------------------------------------------------------------------------------
+
+El agricultor elige su zona, lo que siembra hoy y qué le importa más (agua,
+ingreso o suelo). El backend toma 10 años de clima real de la NASA, calcula
+indicadores sencillos (cuánto llueve, cuánto dura la canícula, cuánto calor
+hace) y compara 3 rotaciones de cultivo con puntajes transparentes. La
+herramienta APOYA la decisión del agricultor, no la reemplaza.
+
+
+--------------------------------------------------------------------------------
+2. QUÉ SE HIZO (RESUMEN)
+--------------------------------------------------------------------------------
+
+  [x] Se verificó qué parámetros acepta NASA POWER sin API key.
+      La humedad del suelo usa GWETROOT (humedad en la zona de raíces).
+  [x] Se escribieron los datos borrador: 3 zonas y 8 cultivos.
+  [x] Se descargaron 10 años reales (2016-2025) de clima para las 3 zonas
+      y se guardaron como respaldo en data/fallback/.
+  [x] Se programó el cliente de NASA POWER con timeout de 10 s, manejo de
+      errores y respaldo automático.
+  [x] Se programaron los indicadores climáticos.
+  [x] Se programó el puntaje por reglas (sin inteligencia artificial).
+  [x] Se programaron las 3 rotaciones (A, B y C).
+  [x] Se programaron los textos explicativos con plantillas (sin LLM).
+  [x] Se programaron 3 endpoints para Vercel con CORS.
+  [x] Se escribieron 53 pruebas que nunca llaman a la NASA en vivo.
+  [x] Se escribió el README con el contrato de la API.
+  [x] Se borraron los archivos vacíos que no entraban en lo pedido
+      (explain, health, cliente LLM, scripts Python, climate_summary.json,
+      .env.example).
+
+
+--------------------------------------------------------------------------------
+3. MAPA DE CARPETAS
+--------------------------------------------------------------------------------
+
+  backend/
+  |
+  |-- api/                       <- Lo que Vercel publica como URLs
+  |   |-- zones/index.js         GET  /api/zones
+  |   |-- zones/[id].js          GET  /api/zones/:id
+  |   `-- recommend.js           POST /api/recommend
+  |
+  |-- src/                       <- Toda la lógica
+  |   |-- data/loadData.js       lee los archivos JSON
+  |   |-- lib/power.js           habla con la NASA
+  |   |-- lib/indicators.js      convierte días de clima en indicadores
+  |   |-- lib/validation.js      revisa lo que manda el frontend
+  |   |-- lib/http.js            CORS, respuestas JSON y errores
+  |   |-- rotations/buildRotations.js   arma A, B y C
+  |   |-- scoring/weights.js     pesos según la prioridad
+  |   |-- scoring/engine.js      calcula los 5 puntajes
+  |   |-- scoring/confidence.js  "similares" y nivel de confianza
+  |   |-- scoring/recommend.js   junta todas las piezas
+  |   `-- explain/templates.js   textos en inglés para el usuario
+  |
+  |-- data/
+  |   |-- zones.json             3 zonas piloto
+  |   |-- crops.json             8 cultivos (borrador)
+  |   `-- fallback/              clima real guardado de cada zona
+  |       |-- sonsonate.json
+  |       |-- usulutan.json
+  |       `-- san-miguel.json
+  |
+  |-- scripts/preprocess/fetchFallback.js   descarga los respaldos
+  |-- tests/                     53 pruebas
+  |-- package.json               nombre, scripts npm, Node >= 20
+  |-- vercel.json                incluye data/ en las funciones
+  `-- README.md                  documentación técnica en inglés
+
+
+--------------------------------------------------------------------------------
+4. CÓMO FLUYE UNA RECOMENDACIÓN
+--------------------------------------------------------------------------------
+
+  Frontend
+     |
+     |  POST /api/recommend
+     |  { zone: "usulutan", currentCrop: ["maize","bean"],
+     |    priority: "water", rainDelta: -0.2, heatDelta: 2 }
+     v
+  +---------------------+
+  | api/recommend.js    |  recibe la petición
+  +---------------------+
+     |
+     v
+  +---------------------+
+  | lib/validation.js   |  ¿la zona existe? ¿los cultivos existen?
+  +---------------------+  ¿la prioridad es válida? si no -> error 400
+     |
+     v
+  +---------------------+       falla / tarda > 10 s
+  | lib/power.js        | ---------------------------+
+  | pide 10 años a NASA |                            |
+  +---------------------+                            v
+     | ok                              +--------------------------+
+     |                                 | data/fallback/<zona>.json|
+     |                                 | fallback = true          |
+     |                                 +--------------------------+
+     |<--------------------------------------------+
+     v
+  quita los valores -999 (datos faltantes)
+     |
+     v
+  +---------------------+
+  | escenario           |  lluvia x (1 + rainDelta)
+  | (indicators.js)     |  temperatura + heatDelta
+  +---------------------+
+     |
+     v
+  +---------------------+
+  | lib/indicators.js   |  lluvia anual, variabilidad, canícula,
+  +---------------------+  días de calor, meses de suelo desnudo...
+     |
+     v
+  +-----------------------------+
+  | rotations/buildRotations.js |  arma A, B y C
+  +-----------------------------+
+     |
+     v
+  +---------------------+
+  | scoring/engine.js   |  5 puntajes por rotación + total
+  +---------------------+
+     |
+     v
+  +---------------------+
+  | explain/templates.js|  beneficios, riesgos, vacíos, aviso
+  +---------------------+
+     |
+     v
+  Respuesta JSON con las 3 rotaciones, "similar", "confidenceNote",
+  "fallback" y "disclaimer"
+
+
+--------------------------------------------------------------------------------
+5. QUÉ HACE CADA ARCHIVO, EN LENGUAJE NATURAL
+--------------------------------------------------------------------------------
+
+---- api/ (las puertas de entrada) ----
+
+api/zones/index.js
+  Cuando el frontend pregunta "¿qué zonas hay?", devuelve la lista de las 3
+  zonas con su nombre y coordenadas.
+
+api/zones/[id].js
+  Cuando el frontend pide una zona (por ejemplo /api/zones/sonsonate),
+  devuelve su clima mes por mes (lluvia, temperatura, humedad del aire y
+  humedad del suelo) para dibujar las gráficas, más los indicadores de la
+  zona. Si la zona no existe responde 404.
+
+api/recommend.js
+  La puerta principal. Recibe lo que eligió el agricultor, lo valida y
+  devuelve la comparación de las 3 rotaciones.
+
+---- src/data ----
+
+loadData.js
+  El "bibliotecario". Sabe abrir zones.json, crops.json y los respaldos de
+  clima. Revisa que el nombre de la zona sea seguro antes de abrir un
+  archivo, para que nadie pida rutas raras.
+
+---- src/lib ----
+
+power.js
+  El "mensajero" con la NASA.
+  - Arma la URL con los 4 parámetros: T2M (temperatura), PRECTOTCORR
+    (lluvia), RH2M (humedad del aire) y GWETROOT (humedad del suelo).
+  - Siempre pide los últimos 10 años completos (hoy: 2016 a 2025).
+  - Si la NASA no responde en 10 segundos, se rinde.
+  - Explica claramente cada error: 422 = parámetro o fechas inválidas,
+    429 = demasiadas consultas, 500/503 = la NASA está caída.
+  - Cambia los -999 (dato faltante) por "vacío" para que no ensucien
+    las cuentas.
+  - Si algo falla, usa el respaldo guardado y avisa con fallback = true.
+
+indicators.js
+  El "calculador del clima". Convierte 3,653 días de datos en números que
+  una persona entiende:
+  - Lluvia mensual promedio: suma la lluvia de cada mes y promedia los años.
+  - Lluvia anual promedio.
+  - Variabilidad de la lluvia (CV): qué tanto cambia la lluvia de un año a
+    otro. CV = desviación estándar / promedio. Más alto = menos predecible.
+  - Racha seca más larga (canícula): cuántos días seguidos llueve menos de
+    1 mm entre mayo y octubre. Se calcula por año y se promedia.
+  - Días de calor extremo: días con temperatura media de 29 C o más
+    (equivale a máximas de unos 34-35 C). Se reporta por año.
+  - Humedad del suelo mensual.
+  - Ventana de campo desnudo: meses con menos de 50 mm de lluvia y humedad
+    del suelo bajo el promedio. Ahí el suelo suele quedar sin cultivo.
+  - También aplica el escenario: si rainDelta = -0.2 baja 20% toda la
+    lluvia; si heatDelta = 2 suma 2 C a cada día. Esto pasa ANTES de
+    calcular los indicadores.
+
+validation.js
+  El "portero". Revisa que la zona exista, que los cultivos existan y no se
+  repitan (de 1 a 4), que la prioridad sea water, income o soil, y que los
+  deltas estén en un rango razonable (lluvia de -90% a +100%, calor de
+  -5 a +5 C). Si algo está mal responde 400 con un mensaje claro en inglés.
+
+http.js
+  El "recepcionista". Pone los permisos CORS para que el frontend pueda
+  llamar desde otro dominio, responde las preguntas previas del navegador
+  (OPTIONS), rechaza métodos no permitidos (405) y convierte cualquier
+  error en una respuesta JSON ordenada.
+
+---- src/rotations ----
+
+buildRotations.js
+  Arma siempre 3 opciones a partir de lo que el agricultor siembra hoy:
+
+    A = Rotación actual         tal cual la declaró.
+    B = Actual + cobertura      agrega la leguminosa que más cubre el suelo
+                                y fija nitrógeno (hoy sale canavalia), para
+                                ocupar los meses de suelo desnudo.
+    C = Cambio tolerante        cambia el cultivo que más agua pide por el
+                                más tolerante a sequía que quepa en el mismo
+                                tiempo de ciclo (ej. maíz -> ajonjolí).
+
+  Ejemplo con maíz + frijol:
+    A: maíz, frijol
+    B: maíz, frijol, canavalia
+    C: ajonjolí, frijol
+
+---- src/scoring ----
+
+weights.js
+  Guarda los pesos de cada prioridad:
+
+    prioridad | agua  suelo erosión ingreso riesgo
+    ----------+------------------------------------
+    water     | .40   .15   .15     .10     .20
+    soil      | .15   .35   .25     .10     .15
+    income    | .15   .10   .10     .40     .25
+
+  total = suma de (peso x puntaje)
+
+engine.js
+  El "juez". Da 5 puntajes de 0 a 1 (1 = mejor) a cada rotación, usando los
+  rasgos de los cultivos y los indicadores de la NASA. Cada puntaje guarda
+  el dato de la NASA que lo originó (la "evidencia").
+
+  - Estrés hídrico de la zona: sube si llueve menos de 2000 mm al año y si
+    la canícula pasa de 3 días.
+  - Agua: baja si los cultivos piden mucha agua y no aguantan sequía en una
+    zona con estrés hídrico.
+  - Suelo: sube con cultivos que fijan nitrógeno y cubren el suelo, y si la
+    rotación cubre los meses de suelo desnudo (la B).
+  - Erosión: baja cuando llueve fuerte (mes más lluvioso / 400 mm) y el
+    suelo está poco cubierto.
+  - Ingreso: potencial de ingreso de los cultivos, descontado si el clima
+    amenaza cosechas sensibles a la sequía.
+  - Riesgo: baja con lluvia variable, muchos días de calor y estrés hídrico;
+    los cultivos tolerantes a sequía amortiguan el golpe.
+
+  Los valores de referencia (2000 mm, 400 mm, CV 0.4, 90 días de calor)
+  están arriba del archivo para que el equipo los ajuste.
+
+confidence.js
+  - "similar" = true si las dos mejores rotaciones están a menos de 0.05
+    de distancia: no hay un ganador claro y se muestran como parecidas.
+  - Confianza baja si la variabilidad de lluvia (CV) pasa de 0.2.
+
+recommend.js
+  El "director de orquesta". Junta todo: pide el clima, aplica el
+  escenario, calcula indicadores, arma A/B/C, las puntúa, agrega los textos
+  y devuelve la respuesta completa. También arma los datos de
+  /api/zones/:id.
+
+---- src/explain ----
+
+templates.js
+  El "redactor". Escribe en inglés, con plantillas fijas (sin LLM), frases
+  que citan los números de la NASA. Por ejemplo:
+  - Beneficio: "Jack bean keeps the soil covered in the bare-field months
+    (Jan, Feb, Mar)."
+  - Riesgo: "Maize is sensitive to drought; the longest rainy-season dry
+    spell averages 6.2 days."
+  - Vacíos: siempre lista que no se conoce el suelo local, los precios ni
+    las plagas, y que los rasgos de cultivos son borrador.
+  - Aviso: "This tool supports your decision; it does not replace your own
+    judgment or the advice of local agricultural technicians."
+
+---- data ----
+
+zones.json      Sonsonate (13.72, -89.72), Usulután (13.35, -88.44),
+                San Miguel (13.48, -88.18).
+crops.json      Maíz, frijol, sorgo, ajonjolí, caupí, canavalia, ayote y
+                yuca. Cada uno con demanda de agua, tolerancia a sequía,
+                si fija nitrógeno, cobertura de suelo, meses de ciclo y
+                potencial de ingreso. Todos tienen needsValidation: true.
+fallback/*.json La respuesta real de la NASA (2016-2025) de cada zona.
+                Sirve de respaldo si la NASA falla y de datos para pruebas.
+
+---- scripts ----
+
+scripts/preprocess/fetchFallback.js
+  Se corre con "npm run preprocess". Descarga de la NASA los últimos 10
+  años de cada zona y reescribe data/fallback/. Usa un timeout más largo
+  (60 s) porque la descarga es grande. Conviene correrlo una vez al año.
+
+---- tests ----
+
+  helpers.js             bloquea cualquier llamada real a internet y da
+                         utilidades para leer los respaldos.
+  data.test.js           zonas, cultivos y respaldos están completos.
+  power.test.js          URL, errores 422/429/500/503, timeout, -999,
+                         respaldo automático.
+  indicators.test.js     cada fórmula con datos pequeños y con datos reales.
+  scoring.test.js        pesos, puntajes, "similar" y confianza.
+  rotations.test.js      A, B y C se arman bien.
+  explain.test.js        textos, vacíos y aviso.
+  validation.test.js     entradas buenas y malas.
+  http.test.js           CORS, 405 y manejo de errores.
+  recommend.test.js      la respuesta completa y los 3 endpoints.
+
+
+--------------------------------------------------------------------------------
+6. QUÉ DICEN LOS DATOS REALES (2016-2025)
+--------------------------------------------------------------------------------
+
+  zona        lluvia/año  variab.(CV)  canícula  calor>=29C  suelo desnudo
+  ----------  ----------  -----------  --------  ----------  -------------
+  Sonsonate   2292 mm     0.163        4.9 días  43 días/año  dic, ene, feb
+  Usulután    1559 mm     0.225        6.2 días  53 días/año  ene, feb, mar
+  San Miguel  1506 mm     0.212        5.8 días  54 días/año  ene, feb, mar
+
+  Usulután y San Miguel son más secos y variables, así que salen con
+  "confianza baja".
+
+  Ejemplo: Usulután, maíz + frijol, prioridad agua
+    A (actual)            total 0.586
+    B (+ canavalia)       total 0.684   <- mejor
+    C (ajonjolí x maíz)   total 0.674   <- casi igual, "similar: true"
+
+
+--------------------------------------------------------------------------------
+7. CÓMO USARLO
+--------------------------------------------------------------------------------
+
+  Requisito: Node.js 20 o más nuevo.
+
+  cd backend
+  npm test               corre las 53 pruebas (no usa internet)
+  npm run preprocess     vuelve a descargar los respaldos de la NASA
+  npx vercel dev         levanta la API en http://localhost:3000
+
+  En Vercel: crear un proyecto con Root Directory = backend.
+
+  Ejemplo de llamada:
+
+    POST /api/recommend
+    {
+      "zone": "usulutan",
+      "currentCrop": ["maize", "bean"],
+      "priority": "water",
+      "rainDelta": -0.2,
+      "heatDelta": 2
+    }
+
+  Ids de cultivos: maize, bean, sorghum, sesame, cowpea, jack-bean,
+  squash, cassava.
+
+
+--------------------------------------------------------------------------------
+8. SUPUESTOS QUE EL EQUIPO DEBE VALIDAR
+--------------------------------------------------------------------------------
+
+  1. Humedad del suelo = GWETROOT (probado, funciona con community=AG).
+  2. Día de calor extremo = temperatura MEDIA diaria >= 29 C.
+  3. La canícula se mide solo de mayo a octubre.
+  4. Suelo desnudo = meses con menos de 50 mm y humedad bajo el promedio.
+  5. currentCrop acepta un cultivo o una lista de hasta 4.
+  6. Los rasgos de los cultivos son borrador.
+  7. Los valores de referencia del puntaje (2000 mm, 400 mm, CV 0.4,
+     90 días) son borrador.
+  8. La ruta es /api/zones/:id (no /api/zones/:id/climate).
+
+
+--------------------------------------------------------------------------------
+9. PENDIENTE
+--------------------------------------------------------------------------------
+
+  [ ] Subir el commit a GitHub (git push origin main).
+  [ ] Validar cultivos y supuestos con el equipo o un técnico.
+  [ ] Conectar el frontend.
+
+================================================================================
