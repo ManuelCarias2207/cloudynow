@@ -1,0 +1,587 @@
+{
+  "_format": "simpler-project",
+  "_version": 2,
+  "_exportedAt": "2026-11-14T20:21:13.826Z",
+  "project": {
+    "id": "ff2bbe7f-282d-4b77-a194-306f3cd67345",
+    "name": "NASA",
+    "status": "in-progress",
+    "createdAt": "2026-11-13T04:58:13.509Z",
+    "updatedAt": "2026-11-14T20:20:47.484Z"
+  },
+  "modules": {
+    "seed": {
+      "projectId": "ff2bbe7f-282d-4b77-a194-306f3cd67345",
+      "projectName": "NASA",
+      "oneLineSummary": "Herramienta de apoyo que compara rotaciones de cultivo con datos satelitales de la NASA para agricultores del Corredor Seco.",
+      "problemStatement": "Los pequeños agricultores deciden qué sembrar con conocimiento empírico, mientras la lluvia se vuelve impredecible, el suelo se degrada y el agua escasea. Elegir un cultivo nuevo para la rotación es riesgoso: lo que mejora el suelo en un lugar puede gastar demasiada agua o no encajar en el mercado local en otro. Construiremos una herramienta web que combina datos NASA (NASA POWER, SMAP, GPM, MODIS) con prioridades del agricultor y compara al menos 3 estrategias de rotación, explicando evidencia, beneficios, vacíos de información y riesgos. La herramienta apoya la decisión; no reemplaza el criterio del agricultor ni del técnico local. Reto: Cambio de campo (NASA Space Apps San Salvador).",
+      "targetAudience": [
+        {
+          "id": "658073bc-465a-4f6d-8652-3437d381f386",
+          "label": "Pequeños agricultores del Corredor Seco"
+        },
+        {
+          "id": "ad131bce-e3e7-445b-bed3-8deb9ee2ee9d",
+          "label": "Técnicos agrícolas y ONG que los acompañan"
+        },
+        {
+          "id": "b1f72e0e-fe3e-4d4c-bb07-81e48b40459d",
+          "label": "Jueces de Space Apps (Impacto, Creatividad, Validez, Relevancia, Presentación)"
+        }
+      ],
+      "hiddenFailureReason": "Hackathon NASA Space Apps San Salvador: sábado 9 AM a domingo 11:59 PM (unas 38 horas reales, menos el sueño).\n\n- Desviarnos del reto: construir un pronosticador del clima en vez de un comparador de al menos 3 rotaciones con evidencia, riesgos y vacíos.\n- Abarcar demasiado: login, perfiles, ajustes y roles no suman puntos; recortados desde el inicio.\n- No tener el servicio web desplegado y en vivo al cierre (requisito obligatorio).\n- Datos NASA frágiles: depender de descargas en vivo pesadas. Mitigación: resúmenes precalculados por zona piloto.\n- Caja negra imposible de defender: usar reglas de puntaje transparentes y que el LLM solo redacte.\n- Mal pitch: no explicar en una frase qué rotación le conviene al agricultor y por qué. Todo debe estar en inglés.\n- Escribir código antes del sábado (prohibido) o no declarar el uso de IA.\n- Falta de organización o de un integrante: roles repartidos antes del sábado."
+    },
+    "anatomy": {
+      "projectId": "ff2bbe7f-282d-4b77-a194-306f3cd67345",
+      "features": [
+        {
+          "id": "133c23ec-1484-4041-b19b-a83af5d0c1e4",
+          "name": "Selector de zona piloto",
+          "description": "Mapa simple con 2-3 zonas piloto precargadas del Corredor Seco de El Salvador. El agricultor toca su zona; sin login ni cuentas.",
+          "type": "core",
+          "complexity": "low",
+          "dependencies": [],
+          "associatedNodes": [
+            "0d885703-c31c-4c7c-93e5-cf303d28fe64"
+          ]
+        },
+        {
+          "id": "b60ebc4f-b990-4206-952f-05331803f296",
+          "name": "Perfil de finca y prioridades",
+          "description": "Formulario corto de 3 pasos: cultivo actual (maíz-frijol, café, hortalizas), prioridad principal (ahorrar agua, ingreso extra, mejorar suelo) y restricciones básicas. Nada se guarda en cuenta.",
+          "type": "core",
+          "complexity": "low",
+          "dependencies": [
+            "133c23ec-1484-4041-b19b-a83af5d0c1e4"
+          ],
+          "associatedNodes": [
+            "99cba1cf-92f3-4f96-a60d-e144f41ddd18"
+          ]
+        },
+        {
+          "id": "bfa22322-9bd0-44b8-b1ac-d5775871ea10",
+          "name": "Resumen de datos NASA por zona",
+          "description": "Pipeline que consume NASA POWER (API REST) y un resumen precalculado por zona de SMAP, GPM y MODIS/NDVI guardado en JSON, para que el despliegue no dependa de descargas en vivo. Debe generar: lluvia y humedad mensual, estrés de vegetación y ventana de campo desnudo.",
+          "type": "core",
+          "complexity": "high",
+          "dependencies": [
+            "133c23ec-1484-4041-b19b-a83af5d0c1e4"
+          ],
+          "associatedNodes": [
+            "1526a45c-ec45-4d06-8eca-3498d09a1f4d",
+            "227536ff-80f9-4ac9-a440-9eb16e5aa19f"
+          ]
+        },
+        {
+          "id": "7e8c1175-a69a-49d8-bd47-ca0bd0f741d0",
+          "name": "Comparador de 3 rotaciones",
+          "description": "Núcleo del reto. Compara 3 estrategias: la rotación actual, una con cobertura/leguminosa y una con cultivo tolerante a sequía. Motor de puntaje por reglas transparentes (tabla de rasgos de cultivos + indicadores NASA + prioridades del agricultor). Por cada estrategia muestra: por qué se sugiere, evidencia NASA, beneficios, vacíos de información y riesgos a validar localmente. Un LLM solo redacta la explicación en lenguaje sencillo.",
+          "type": "core",
+          "complexity": "high",
+          "dependencies": [
+            "b60ebc4f-b990-4206-952f-05331803f296",
+            "bfa22322-9bd0-44b8-b1ac-d5775871ea10"
+          ],
+          "associatedNodes": [
+            "5cfc96fe-efd4-41d9-a758-d23d9ff13e5d",
+            "92609dca-55ec-48ea-937e-7248180d5923",
+            "784eda3c-2551-409f-8434-d1a63852f5ed",
+            "7b2d3454-0613-4755-8c0d-3f774f6568d2"
+          ]
+        },
+        {
+          "id": "d377e0cc-a591-48b2-94e8-8cc3ea2d8431",
+          "name": "Aviso de apoyo, no reemplazo",
+          "description": "Mensaje visible en los resultados: la herramienta apoya la decisión y no reemplaza al agricultor ni al técnico local. Marca qué puntos requieren validación humana.",
+          "type": "core",
+          "complexity": "low",
+          "dependencies": [
+            "7e8c1175-a69a-49d8-bd47-ca0bd0f741d0"
+          ],
+          "associatedNodes": [
+            "5cfc96fe-efd4-41d9-a758-d23d9ff13e5d",
+            "227536ff-80f9-4ac9-a440-9eb16e5aa19f"
+          ]
+        },
+        {
+          "id": "f7cb4b0f-8dc5-4d2e-a38d-8922a10c7a83",
+          "name": "Gráficas de clima, suelo y campo desnudo",
+          "description": "Gráficas claras de lluvia, humedad del suelo y NDVI por mes, con la ventana de campo desnudo resaltada. Explicaciones breves de términos (NDVI, humedad del suelo) para un público no técnico.",
+          "type": "supporting",
+          "complexity": "medium",
+          "dependencies": [
+            "bfa22322-9bd0-44b8-b1ac-d5775871ea10"
+          ],
+          "associatedNodes": [
+            "1526a45c-ec45-4d06-8eca-3498d09a1f4d"
+          ]
+        },
+        {
+          "id": "44532991-390c-41b6-843b-1d08650d7620",
+          "name": "Despliegue como servicio web en vivo",
+          "description": "Requisito obligatorio de Space Apps. Frontend y backend desplegados en Render, Netlify o Railway desde un repo nuevo y vacío creado el sábado. Probar el despliegue temprano, no al final.",
+          "type": "core",
+          "complexity": "medium",
+          "dependencies": [],
+          "associatedNodes": []
+        },
+        {
+          "id": "caa785fb-67ab-4299-ae94-3cfd9be61756",
+          "name": "Demo y pitch en inglés",
+          "description": "Deck de 7 slides con enlace público (o video de 30 s con subtítulos en inglés, sin menores). Problema, dato NASA usado, demo punta a punta, impacto y límites. Incluir la declaración de herramientas de IA usadas y la pestaña de datos NASA.",
+          "type": "core",
+          "complexity": "medium",
+          "dependencies": [],
+          "associatedNodes": []
+        },
+        {
+          "id": "86c4c2f4-3ade-4c63-8fe3-e242208eef6a",
+          "name": "Slider de escenarios",
+          "description": "Control para simular menos lluvia o más calor y ver cómo cambia el puntaje de cada rotación. Extra mencionado por el reto.",
+          "type": "nice-to-have",
+          "complexity": "medium",
+          "dependencies": [
+            "7e8c1175-a69a-49d8-bd47-ca0bd0f741d0"
+          ],
+          "associatedNodes": [
+            "690fbf93-8600-4e8c-9d18-b900885c157a"
+          ]
+        },
+        {
+          "id": "6d30f559-8a06-46ab-9015-af9c4eb99a4c",
+          "name": "Asistente tipo Waze del campo",
+          "description": "Chat simple dentro de la web que simula WhatsApp: el agricultor pregunta en lenguaje natural y recibe una respuesta corta con emojis basada en el resultado del comparador. Se muestra en el pitch como visión de futuro; la integración real con WhatsApp o Telegram queda fuera de las 38 horas.",
+          "type": "nice-to-have",
+          "complexity": "high",
+          "dependencies": [
+            "7e8c1175-a69a-49d8-bd47-ca0bd0f741d0"
+          ],
+          "associatedNodes": [
+            "1a98e6cd-a82d-497d-b11c-1622d60403b8"
+          ]
+        },
+        {
+          "id": "b8b3ed4e-fc31-46af-b491-90ef6cd2fa1f",
+          "name": "Calendario de siembra",
+          "description": "Sugerencia de semanas aptas para sembrar según lluvia y humedad esperadas. Solo si el núcleo ya está desplegado y estable.",
+          "type": "nice-to-have",
+          "complexity": "high",
+          "dependencies": [
+            "bfa22322-9bd0-44b8-b1ac-d5775871ea10"
+          ],
+          "associatedNodes": [
+            "02d74a74-cfbb-4509-b4df-d51245e2b116"
+          ]
+        },
+        {
+          "id": "507b8339-b00b-4e6e-bd2e-c105af94bc97",
+          "name": "Login y registro",
+          "description": "Fuera de alcance: no aporta a los criterios de evaluación y consume horas. La herramienta funciona sin cuenta.",
+          "type": "out-of-scope",
+          "complexity": "medium",
+          "dependencies": [],
+          "associatedNodes": []
+        },
+        {
+          "id": "70516431-ec1d-4d65-8d40-e66ff2bf77f5",
+          "name": "Perfil con blobatar",
+          "description": "Fuera de alcance: solo decorativo.",
+          "type": "out-of-scope",
+          "complexity": "medium",
+          "dependencies": [],
+          "associatedNodes": []
+        },
+        {
+          "id": "5efd0941-528b-4854-a722-5bdd8b0b31e7",
+          "name": "Ajustes de idioma y tema",
+          "description": "Fuera de alcance: la interfaz va en inglés por requisito del evento.",
+          "type": "out-of-scope",
+          "complexity": "medium",
+          "dependencies": [],
+          "associatedNodes": []
+        },
+        {
+          "id": "9d78a955-df97-40d2-8637-c4030fc67b97",
+          "name": "Roles de acceso (admin, agricultor, investigador)",
+          "description": "Fuera de alcance: sin cuentas no hay roles.",
+          "type": "out-of-scope",
+          "complexity": "medium",
+          "dependencies": [],
+          "associatedNodes": []
+        },
+        {
+          "id": "dc064a64-b13f-4dc5-b7d6-c9140bcab45f",
+          "name": "Historial completo de cambios de clima",
+          "description": "Fuera de alcance: las gráficas por zona cubren la necesidad del reto.",
+          "type": "out-of-scope",
+          "complexity": "medium",
+          "dependencies": [],
+          "associatedNodes": []
+        }
+      ]
+    },
+    "architecture": {
+      "projectId": "ff2bbe7f-282d-4b77-a194-306f3cd67345",
+      "nodes": [
+        {
+          "id": "90e822fc-ee25-4186-8846-e2c003d09853",
+          "name": "home",
+          "description": "Landing de una sola pantalla sin scroll: qué hace la herramienta en una frase y botón para empezar.",
+          "parentId": null,
+          "associatedFeatures": [],
+          "order": 0
+        },
+        {
+          "id": "0d885703-c31c-4c7c-93e5-cf303d28fe64",
+          "name": "elegir zona",
+          "description": "Mapa con 2-3 zonas piloto del Corredor Seco.",
+          "parentId": "90e822fc-ee25-4186-8846-e2c003d09853",
+          "associatedFeatures": [
+            "133c23ec-1484-4041-b19b-a83af5d0c1e4"
+          ],
+          "order": 0
+        },
+        {
+          "id": "99cba1cf-92f3-4f96-a60d-e144f41ddd18",
+          "name": "tu finca",
+          "description": "Formulario corto: cultivo actual, prioridad principal y restricciones.",
+          "parentId": "90e822fc-ee25-4186-8846-e2c003d09853",
+          "associatedFeatures": [
+            "b60ebc4f-b990-4206-952f-05331803f296"
+          ],
+          "order": 1
+        },
+        {
+          "id": "5cfc96fe-efd4-41d9-a758-d23d9ff13e5d",
+          "name": "resultados",
+          "description": "Comparación de las 3 rotaciones con evidencia, beneficios, vacíos y riesgos, más el aviso de apoyo.",
+          "parentId": "90e822fc-ee25-4186-8846-e2c003d09853",
+          "associatedFeatures": [
+            "7e8c1175-a69a-49d8-bd47-ca0bd0f741d0",
+            "d377e0cc-a591-48b2-94e8-8cc3ea2d8431"
+          ],
+          "order": 2
+        },
+        {
+          "id": "92609dca-55ec-48ea-937e-7248180d5923",
+          "name": "rotación actual",
+          "description": "Estrategia A: la rotación tal como la declara el agricultor.",
+          "parentId": "5cfc96fe-efd4-41d9-a758-d23d9ff13e5d",
+          "associatedFeatures": [
+            "7e8c1175-a69a-49d8-bd47-ca0bd0f741d0"
+          ],
+          "order": 0
+        },
+        {
+          "id": "784eda3c-2551-409f-8434-d1a63852f5ed",
+          "name": "rotación con cobertura",
+          "description": "Estrategia B: cobertura o leguminosa en la ventana de campo desnudo.",
+          "parentId": "5cfc96fe-efd4-41d9-a758-d23d9ff13e5d",
+          "associatedFeatures": [
+            "7e8c1175-a69a-49d8-bd47-ca0bd0f741d0"
+          ],
+          "order": 1
+        },
+        {
+          "id": "7b2d3454-0613-4755-8c0d-3f774f6568d2",
+          "name": "rotación tolerante a sequía",
+          "description": "Estrategia C: sustitución por un cultivo tolerante a sequía.",
+          "parentId": "5cfc96fe-efd4-41d9-a758-d23d9ff13e5d",
+          "associatedFeatures": [
+            "7e8c1175-a69a-49d8-bd47-ca0bd0f741d0"
+          ],
+          "order": 2
+        },
+        {
+          "id": "1526a45c-ec45-4d06-8eca-3498d09a1f4d",
+          "name": "clima y suelo",
+          "description": "Gráficas de lluvia, humedad del suelo, NDVI y ventana de campo desnudo.",
+          "parentId": "5cfc96fe-efd4-41d9-a758-d23d9ff13e5d",
+          "associatedFeatures": [
+            "f7cb4b0f-8dc5-4d2e-a38d-8922a10c7a83",
+            "bfa22322-9bd0-44b8-b1ac-d5775871ea10"
+          ],
+          "order": 3
+        },
+        {
+          "id": "690fbf93-8600-4e8c-9d18-b900885c157a",
+          "name": "escenarios",
+          "description": "Slider de menos lluvia o más calor (opcional).",
+          "parentId": "5cfc96fe-efd4-41d9-a758-d23d9ff13e5d",
+          "associatedFeatures": [
+            "86c4c2f4-3ade-4c63-8fe3-e242208eef6a"
+          ],
+          "order": 4
+        },
+        {
+          "id": "1a98e6cd-a82d-497d-b11c-1622d60403b8",
+          "name": "asistente",
+          "description": "Chat tipo Waze del campo que reutiliza el resultado del comparador (opcional).",
+          "parentId": "5cfc96fe-efd4-41d9-a758-d23d9ff13e5d",
+          "associatedFeatures": [
+            "6d30f559-8a06-46ab-9015-af9c4eb99a4c"
+          ],
+          "order": 5
+        },
+        {
+          "id": "02d74a74-cfbb-4509-b4df-d51245e2b116",
+          "name": "calendario de siembra",
+          "description": "Semanas aptas para sembrar (opcional).",
+          "parentId": "5cfc96fe-efd4-41d9-a758-d23d9ff13e5d",
+          "associatedFeatures": [
+            "b8b3ed4e-fc31-46af-b491-90ef6cd2fa1f"
+          ],
+          "order": 6
+        },
+        {
+          "id": "227536ff-80f9-4ac9-a440-9eb16e5aa19f",
+          "name": "sobre los datos",
+          "description": "Datasets NASA usados, límites, aviso de apoyo y declaración de uso de IA.",
+          "parentId": "90e822fc-ee25-4186-8846-e2c003d09853",
+          "associatedFeatures": [
+            "bfa22322-9bd0-44b8-b1ac-d5775871ea10",
+            "d377e0cc-a591-48b2-94e8-8cc3ea2d8431"
+          ],
+          "order": 3
+        }
+      ]
+    },
+    "logic": {
+      "projectId": "ff2bbe7f-282d-4b77-a194-306f3cd67345",
+      "blocks": [
+        {
+          "id": "502d0923-5af5-48d7-932b-a721b47217bf",
+          "type": "data-rule",
+          "title": "Datos precalculados",
+          "content": "Nada crítico depende de una llamada externa en vivo. Un script de preproceso (sábado temprano) descarga y resume NASA POWER, SMAP, GPM y MODIS/NDVI para las zonas piloto y genera climate_summary.json. La API solo lee esos JSON.",
+          "status": "defined"
+        },
+        {
+          "id": "79112677-0e0d-450f-9c70-dcf10cd970a9",
+          "type": "data-rule",
+          "title": "Indicadores por zona",
+          "content": "Por zona se calculan: lluvia mensual y variabilidad, racha seca más larga, humedad del suelo media y anomalía, curva mensual de NDVI, días de calor extremo y ventana de campo desnudo (meses con NDVI bajo).",
+          "status": "defined"
+        },
+        {
+          "id": "58dee887-9aa0-452c-b47e-fd3fec349e69",
+          "type": "data-rule",
+          "title": "Respaldos ante fallas",
+          "content": "Si NASA POWER no responde, usar el valor cacheado. Si el LLM falla o tarda, generar el texto con plantillas desde la evidencia. Si una zona tiene datos incompletos, mostrarlo como vacío de información en la UI.",
+          "status": "defined"
+        },
+        {
+          "id": "79eedbb8-d832-40fe-85c0-ab6a9c8ccc92",
+          "type": "data-rule",
+          "title": "Requisito de datos NASA",
+          "content": "Usar al menos un dataset NASA o de agencia aliada y describir su uso en la pestaña de datos de la entrega. Otras fuentes solo como complemento.",
+          "status": "defined"
+        },
+        {
+          "id": "11c00737-2fe9-411a-a166-121d93174186",
+          "type": "business-rule",
+          "title": "Siempre tres rotaciones",
+          "content": "Se comparan siempre 3 estrategias: A actual, B actual con cobertura o leguminosa, C con cultivo tolerante a sequía. Los cultivos salen de crops.json, tabla de rasgos que arma el equipo con fuentes agronómicas y se marca como a validar con técnico local.",
+          "status": "defined"
+        },
+        {
+          "id": "6fbfdecc-6909-4592-9a63-386470be65f2",
+          "type": "business-rule",
+          "title": "Puntaje por reglas transparentes",
+          "content": "Cada rotación recibe puntajes de 0 a 1 en agua, suelo, erosión, ingreso y riesgo. puntaje = suma(peso * score), con pesos según la prioridad elegida (si prioriza agua: agua 0.4 y el resto repartido). Cada score guarda el indicador NASA que lo originó y la UI lo muestra literalmente.",
+          "status": "defined"
+        },
+        {
+          "id": "1e084825-36d7-4ab9-8d2e-ad775c2f2f77",
+          "type": "business-rule",
+          "title": "Incertidumbre y empates",
+          "content": "Si la variabilidad de la lluvia es alta, bajar la confianza y avisar. Si la diferencia entre las dos mejores rotaciones es menor a 0.05, mostrar 'similares' en lugar de forzar un ganador. Siempre listar vacíos que NASA no cubre: tipo de suelo local, precios de mercado y plagas.",
+          "status": "defined"
+        },
+        {
+          "id": "9d411c5a-4e2d-4130-b5f3-f25bef6aa453",
+          "type": "business-rule",
+          "title": "Apoya, no reemplaza",
+          "content": "Todo resultado muestra el aviso de que la herramienta apoya la decisión y no reemplaza al agricultor ni al técnico local, e indica qué puntos requieren validación humana.",
+          "status": "defined"
+        },
+        {
+          "id": "519a0fc7-4358-4a90-a529-313fb9ba9b99",
+          "type": "business-rule",
+          "title": "Regla del LLM",
+          "content": "El LLM recibe solo el JSON de evidencia y redacta máximo 80 palabras en lenguaje sencillo, sin inventar cifras ni recomendar fuera de la evidencia. Su uso se declara en la entrega.",
+          "status": "defined"
+        },
+        {
+          "id": "f9fba86d-aed5-46c4-a703-98da9a97b6bc",
+          "type": "business-rule",
+          "title": "Reglas del hackathon",
+          "content": "Desarrollo solo desde el sábado con repo nuevo y vacío. Todo el contenido en inglés (video en español solo con subtítulos en inglés, sin menores). Servicio web desplegado y en vivo. Entrega con resumen, demo (deck de 7 slides o video de 30 s con enlace público), detalles técnicos, pestaña de datos NASA y declaración de IA.",
+          "status": "defined"
+        },
+        {
+          "id": "4349447b-c71d-46df-88ec-2e960fd8ed2f",
+          "type": "user-flow",
+          "title": "Flujo de tres pasos",
+          "content": "1) El agricultor elige su zona en el mapa. 2) Indica cultivo actual y prioridad. 3) Recibe las 3 rotaciones comparadas con evidencia, gráficas y aviso. Sin login.",
+          "status": "defined"
+        },
+        {
+          "id": "cf2b46d9-71f5-4004-bc08-3b25b5927fbc",
+          "type": "user-flow",
+          "title": "Demo del pitch",
+          "content": "Un caso real de punta a punta con una zona del Corredor Seco: mostrar el problema, elegir zona y prioridad, ver el comparador, mover el slider de escenarios y cerrar con el asistente como visión de futuro. Ensayarlo con una zona fija y datos ya cargados.",
+          "status": "defined"
+        },
+        {
+          "id": "8bb5d9cf-104c-431f-93f4-38808c491952",
+          "type": "user-flow",
+          "title": "Asistente tipo Waze del campo",
+          "content": "El agricultor escribe una pregunta natural y recibe una respuesta corta con emojis basada en el resultado del comparador. En el hackathon se simula dentro de la web; la integración real con WhatsApp o Telegram se presenta como siguiente paso.",
+          "status": "defined"
+        }
+      ]
+    },
+    "stack": {
+      "projectId": "ff2bbe7f-282d-4b77-a194-306f3cd67345",
+      "categories": [
+        {
+          "key": "frontend",
+          "label": "stack.category.frontend",
+          "choice": "React",
+          "justification": "React + Vite: arranca en milisegundos, ideal para iterar en 38 horas. Interfaz en inglés, flujo de 3 pasos y pantalla de resultados."
+        },
+        {
+          "key": "backend",
+          "label": "stack.category.backend",
+          "choice": "Node.js",
+          "justification": "API stateless pequeña (/zones, /zones/:id/climate, /recommend, /explain) que lee JSON y ejecuta el motor de puntaje. El preproceso de datos se hace en un script aparte."
+        },
+        {
+          "key": "database",
+          "label": "stack.category.database",
+          "choice": "Ninguna (JSON estáticos)",
+          "justification": "zones.json, climate_summary.json y crops.json dentro del repo. Sin base de datos se elimina un punto de falla y tiempo de configuración."
+        },
+        {
+          "key": "auth",
+          "label": "stack.category.auth",
+          "choice": "Ninguna",
+          "justification": "Sin login ni cuentas: la herramienta es de uso directo y no aporta a los criterios de evaluación."
+        },
+        {
+          "key": "infra",
+          "label": "stack.category.infra",
+          "choice": "vercel",
+          "justification": "Plataformas recomendadas por Space Apps para el servicio web en vivo. Desplegar un hola mundo en la primera hora y probar el despliegue temprano."
+        },
+        {
+          "key": "services",
+          "label": "stack.category.services",
+          "choice": "NASA POWER API, Earthdata y API de LLM",
+          "justification": "NASA POWER (REST abierta) para temperatura, lluvia y radiación. Earthdata (SMAP, GPM, MODIS) para el preproceso de humedad, precipitación y NDVI. LLM solo para redactar la explicación."
+        },
+        {
+          "key": "libraries",
+          "label": "stack.category.libraries",
+          "choice": "react-leaflet, recharts, tailwindcss, lucide-react, earthaccess (Python), arc ui, ",
+          "justification": "react-leaflet para el mapa de zonas, recharts para las gráficas de clima y suelo, tailwindcss para estilos rápidos, lucide-react para iconos y earthaccess + pandas en el script de preproceso de datos NASA.\n\narc ui: botones atc: https://uiarc.dev/components/\n\n00h: animaciones botones etc.: https://cojeev.com/ui/"
+        }
+      ]
+    },
+    "identity": {
+      "projectId": "ff2bbe7f-282d-4b77-a194-306f3cd67345",
+      "finalName": "Siembra Satelital",
+      "nameVariants": [],
+      "colors": [],
+      "typography": [
+        {
+          "id": "a3592a7e-a0b1-42e5-a8d1-9b06c670f35c",
+          "fontFamily": "Inter",
+          "role": "headings",
+          "previewText": ""
+        },
+        {
+          "id": "ab1abef0-0e1a-453c-9a98-5c71916d9242",
+          "fontFamily": "Inter",
+          "role": "body",
+          "previewText": ""
+        }
+      ],
+      "toneAdjectives": [
+        "friendly",
+        "minimalist"
+      ],
+      "toneDescription": "Claro y cercano para un agricultor sin experiencia técnica ni geoespacial. Lenguaje sencillo, sin jerga, honesto sobre lo que no se sabe.",
+      "visualReferences": [],
+      "logoConcept": "Nombre de trabajo, por definir con el equipo. Idea: una hoja o brote con una órbita satelital alrededor.",
+      "logoSketch": ""
+    },
+    "roadmap": {
+      "projectId": "ff2bbe7f-282d-4b77-a194-306f3cd67345",
+      "phases": [
+        {
+          "id": "f5112d9b-0277-4ab9-9f52-a838be6b8e5a",
+          "name": "Antes del sábado (sin código)",
+          "objective": "Jueves y viernes. Registrar al equipo, definir nombre y roles, crear cuentas (Devin, Netlify, Render, Earthdata), armar la tabla de cultivos en papel, elegir zonas piloto y guion del pitch. Revisar datasets al publicarse el viernes.",
+          "featureIds": [],
+          "durationWeeks": 0,
+          "successCriteria": "Equipo registrado, roles repartidos, tabla de cultivos lista en papel y zonas piloto elegidas.",
+          "order": 0
+        },
+        {
+          "id": "af96fc7b-7b56-4b5c-bcfa-bcebed4313ac",
+          "name": "Sábado mañana: base y despliegue",
+          "objective": "Tras la inauguración. Repo nuevo y vacío, hola mundo desplegado en la primera hora, selector de zona, formulario de finca y arranque del script de datos.",
+          "featureIds": [
+            "44532991-390c-41b6-843b-1d08650d7620",
+            "133c23ec-1484-4041-b19b-a83af5d0c1e4",
+            "b60ebc4f-b990-4206-952f-05331803f296",
+            "bfa22322-9bd0-44b8-b1ac-d5775871ea10"
+          ],
+          "durationWeeks": 0,
+          "successCriteria": "Frontend y API desplegados en vivo y datos de al menos una zona en JSON.",
+          "order": 1
+        },
+        {
+          "id": "1942a63d-646f-4612-a2e7-2a53ea261dc0",
+          "name": "Sábado tarde y noche: núcleo",
+          "objective": "Motor de puntaje y comparador de 3 rotaciones, aviso de apoyo y gráficas de clima y suelo. Cerrar sábado con el flujo completo funcionando para una zona.",
+          "featureIds": [
+            "7e8c1175-a69a-49d8-bd47-ca0bd0f741d0",
+            "d377e0cc-a591-48b2-94e8-8cc3ea2d8431",
+            "f7cb4b0f-8dc5-4d2e-a38d-8922a10c7a83"
+          ],
+          "durationWeeks": 0,
+          "successCriteria": "Flujo de 3 pasos completo de punta a punta, desplegado, con una zona real.",
+          "order": 2
+        },
+        {
+          "id": "7832a95f-4a05-412e-8e85-216be7046b1e",
+          "name": "Domingo mañana: opcionales y pulido",
+          "objective": "Solo si el núcleo está estable: slider de escenarios y asistente simulado. Segunda y tercera zona. Corregir bugs. Congelar funcionalidades al mediodía.",
+          "featureIds": [
+            "86c4c2f4-3ade-4c63-8fe3-e242208eef6a",
+            "6d30f559-8a06-46ab-9015-af9c4eb99a4c",
+            "b8b3ed4e-fc31-46af-b491-90ef6cd2fa1f"
+          ],
+          "durationWeeks": 0,
+          "successCriteria": "Sin bugs en el flujo principal y funcionalidades congeladas.",
+          "order": 3
+        },
+        {
+          "id": "90685181-f0c2-45f4-ba5e-4fcb7836a885",
+          "name": "Domingo tarde: pitch y entrega",
+          "objective": "Deck de 7 slides o video de 30 s en inglés, detalles técnicos, pestaña de datos NASA y declaración de IA. Entregar con holgura antes de las 11:59 PM; ensayar el pitch.",
+          "featureIds": [
+            "caa785fb-67ab-4299-ae94-3cfd9be61756"
+          ],
+          "durationWeeks": 0,
+          "successCriteria": "Proyecto enviado en la plataforma con enlace de demo público y servicio en vivo verificado.",
+          "order": 4
+        }
+      ]
+    },
+    "prototyping": null
+  }
+}
