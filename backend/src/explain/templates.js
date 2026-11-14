@@ -10,6 +10,11 @@ function names(crops) {
   return crops.map((crop) => crop.name).join(', ');
 }
 
+/** Picks the singular or plural verb for a crop list ("Maize is" / "Maize, Bean are"). */
+function verb(crops, singular, plural) {
+  return crops.length === 1 ? singular : plural;
+}
+
 /** "Jan, Feb, Dec" or "no clear months". */
 function monthList(months) {
   return months.length > 0 ? months.map(monthLabel).join(', ') : 'no clear months';
@@ -20,7 +25,7 @@ export function benefitsFor(rotation, scores, indicators) {
   const benefits = [];
   if (rotation.id === 'A') benefits.push('Keeps the crops you already know, with no new seed or learning cost.');
   const fixers = rotation.crops.filter((crop) => crop.fixesNitrogen);
-  if (fixers.length > 0) benefits.push(`${names(fixers)} fixes nitrogen in the soil, which can lower fertilizer needs.`);
+  if (fixers.length > 0) benefits.push(`${names(fixers)} ${verb(fixers, 'fixes', 'fix')} nitrogen in the soil, which can lower fertilizer needs.`);
   if (rotation.coversBareWindow) {
     benefits.push(`${rotation.added.name} keeps the soil covered in the bare-field months (${monthList(indicators.bareWindowMonths)}).`);
   }
@@ -29,7 +34,7 @@ export function benefitsFor(rotation, scores, indicators) {
   }
   if (scores.water >= 0.75) benefits.push(`Water needs fit the zone: about ${indicators.meanAnnualRainMm} mm of rain per year.`);
   const earners = rotation.crops.filter((crop) => crop.incomePotential === 'high');
-  if (earners.length > 0) benefits.push(`${names(earners)} has high income potential (draft estimate).`);
+  if (earners.length > 0) benefits.push(`${names(earners)} ${verb(earners, 'has', 'have')} high income potential (draft estimate).`);
   return benefits;
 }
 
@@ -38,7 +43,7 @@ export function risksFor(rotation, scores, indicators) {
   const risks = [];
   const thirsty = rotation.crops.filter((crop) => LEVEL[crop.droughtTolerance] === 0);
   if (thirsty.length > 0 && indicators.longestDrySpellDays >= 5) {
-    risks.push(`${names(thirsty)} is sensitive to drought; the longest rainy-season dry spell averages ${indicators.longestDrySpellDays} days.`);
+    risks.push(`${names(thirsty)} ${verb(thirsty, 'is', 'are')} sensitive to drought; the longest rainy-season dry spell averages ${indicators.longestDrySpellDays} days.`);
   }
   if (scores.water < 0.6) risks.push(`Water demand may be high for about ${indicators.meanAnnualRainMm} mm of rain per year.`);
   if (indicators.extremeHeatDaysPerYear >= 30) {
@@ -54,7 +59,7 @@ export function risksFor(rotation, scores, indicators) {
 }
 
 /** What NASA POWER and this tool do not know. */
-export function informationGapsFor(rotation, { fallback, hasSoilMoisture, period }) {
+export function informationGapsFor(rotation, { fallback, fallbackZone, hasSoilMoisture, period }, zone = {}) {
   const gaps = [
     'Local soil type and fertility are not measured by NASA POWER.',
     'Market prices are not included; income potential is a rough estimate.',
@@ -64,7 +69,11 @@ export function informationGapsFor(rotation, { fallback, hasSoilMoisture, period
   const drafts = rotation.crops.filter((crop) => crop.needsValidation);
   if (drafts.length > 0) gaps.push(`Crop traits for ${names(drafts)} are draft values pending validation by a local technician.`);
   if (!hasSoilMoisture) gaps.push('Soil moisture data is not available for this zone.');
-  if (fallback) gaps.push(`Live NASA POWER data was unavailable; stored data for ${period.start}-${period.end} was used.`);
+  if (fallback && fallbackZone && fallbackZone.id !== zone.id) {
+    gaps.push(`Live NASA POWER data was unavailable; stored data from the nearest pilot zone (${fallbackZone.name}, ${period.start}-${period.end}) was used instead of your location.`);
+  } else if (fallback) {
+    gaps.push(`Live NASA POWER data was unavailable; stored data for ${period.start}-${period.end} was used.`);
+  }
   return gaps;
 }
 

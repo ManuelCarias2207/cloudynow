@@ -28,7 +28,7 @@ export async function zoneDetail(zone, options = {}) {
 }
 
 /** Converts a scored rotation into the public response shape. */
-function presentRotation(rotation, indicators, climate, weights) {
+function presentRotation(rotation, indicators, climate, weights, zone) {
   const { scores, evidence } = scoreRotation(rotation, indicators, weights);
   return {
     id: rotation.id,
@@ -38,7 +38,7 @@ function presentRotation(rotation, indicators, climate, weights) {
     evidence,
     benefits: benefitsFor(rotation, scores, indicators),
     risks: risksFor(rotation, scores, indicators),
-    informationGaps: informationGapsFor(rotation, climate),
+    informationGaps: informationGapsFor(rotation, climate, zone),
   };
 }
 
@@ -50,7 +50,7 @@ export async function recommend(input, options = {}) {
   const { monthly, ...indicators } = computeIndicators(days);
   const weights = weightsFor(input.priority);
   const rotations = buildRotations(input.currentCrops, crops).map((rotation) =>
-    presentRotation(rotation, indicators, climate, weights),
+    presentRotation(rotation, indicators, climate, weights, input.zone),
   );
   return {
     zone: input.zone,

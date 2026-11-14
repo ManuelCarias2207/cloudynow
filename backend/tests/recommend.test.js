@@ -71,3 +71,11 @@ test('API handlers answer with CORS and JSON (offline, using fallbacks)', async 
   assert.equal(good.statusCode, 200);
   assert.equal(good.body.rotations.length, 3);
 });
+
+test('a map point uses its nearest pilot zone data when NASA POWER fails', async () => {
+  const zone = { id: 'custom', name: 'Selected location', lat: 13.4, lon: -88.3, fallbackZone: { id: 'san-miguel', name: 'San Miguel' } };
+  const result = await quiet(() => recommend({ zone, currentCrops: ['maize'], priority: 'soil', rainDelta: 0, heatDelta: 0 }, { fetchImpl: offlineFetch }));
+  assert.equal(result.fallback, true);
+  assert.equal(result.indicators.meanAnnualRainMm, 1506);
+  assert.ok(result.rotations[0].informationGaps.some((text) => text.includes('nearest pilot zone (San Miguel')));
+});

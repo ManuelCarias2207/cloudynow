@@ -14,6 +14,7 @@ Requirements: Node.js 20+.
 
 ```bash
 cd backend
+npm run dev              # local API on http://localhost:3001 (scripts/devServer.js, no Vercel CLI needed)
 npm test                 # unit tests (only use stored data in data/fallback, never call NASA POWER)
 npm run preprocess       # re-download the last 10 complete years from NASA POWER into data/fallback/
 npx vercel dev           # serves /api/* on http://localhost:3000 (needs the Vercel CLI and login)
@@ -37,6 +38,7 @@ src/rotations/            builds rotations A, B, C
 src/scoring/              rule-based scores, weights, similarity/confidence, recommend orchestration
 src/explain/templates.js  English template texts (benefits, risks, gaps, disclaimer); no LLM
 scripts/preprocess/       fetchFallback.js (downloads data/fallback/<zoneId>.json)
+scripts/devServer.js      local server for the /api functions (npm run dev)
 data/                     zones.json, crops.json (draft, needsValidation), fallback/
 ```
 
@@ -101,7 +103,8 @@ Request:
 
 | Field | Required | Description |
 |---|---|---|
-| `zone` | yes | zone id from `/api/zones` |
+| `zone` | one of `zone` or `lat`+`lon` | pilot zone id from `/api/zones` |
+| `lat`, `lon` | one of `zone` or `lat`+`lon` | any map point inside El Salvador (lat 13.1..14.5, lon -90.2..-87.6). Returned as `zone: { id: "custom", name: "Selected location", lat, lon, fallbackZone }` |
 | `currentCrop` | yes | crop id, or list of 1–4 crop ids (the current rotation) from `data/crops.json` |
 | `priority` | yes | `"water"`, `"income"` or `"soil"` |
 | `rainDelta` | no | rain change applied to daily data, `-0.9`..`1` (`-0.2` = 20% less rain). Default `0` |
@@ -141,6 +144,8 @@ Response (abbreviated):
 }
 ```
 
+- For a map point, if NASA POWER fails the stored data of the nearest pilot zone (`fallbackZone`) is used
+  and `fallback` is `true`. Note: NASA POWER cells are ~50 km, so nearby points can return identical data.
 - Always exactly 3 rotations: **A** current, **B** current + nitrogen-fixing cover crop in the
   bare-field window, **C** current with its thirstiest crop replaced by a drought-tolerant one.
 - All scores are 0..1 (1 = best). `total = Σ weight × score`.

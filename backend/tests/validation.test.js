@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import './helpers.js';
 import { loadZones, loadCrops } from '../src/data/loadData.js';
-import { validateRecommendBody, ValidationError } from '../src/lib/validation.js';
+import { validateRecommendBody, ValidationError, nearestZone } from '../src/lib/validation.js';
 
 const context = async () => ({ zones: await loadZones(), crops: await loadCrops() });
 
@@ -30,5 +30,19 @@ test('rejects invalid input with clear 400 errors', async () => {
   ];
   for (const [body, message] of bad) {
     assert.throws(() => validateRecommendBody(body, ctx), (error) => error instanceof ValidationError && error.status === 400 && message.test(error.message));
+  }
+});
+
+test('accepts a map point inside El Salvador and links its nearest pilot zone', async () => {
+  const ctx = await context();
+  const input = validateRecommendBody({ lat: 14.0312, lon: -88.9401, currentCrop: 'maize', priority: 'water' }, ctx);
+  assert.deepEqual(input.zone, { id: 'custom', name: 'Selected location', lat: 14.03, lon: -88.94, fallbackZone: { id: 'sonsonate', name: 'Sonsonate' } });
+  assert.equal(nearestZone({ lat: 13.4, lon: -88.2 }, ctx.zones).id, 'san-miguel');
+});
+
+test('rejects map points outside El Salvador or without numbers', async () => {
+  const ctx = await context();
+  for (const point of [{ lat: 19.4, lon: -99.1 }, { lat: '13.7', lon: -89.2 }, { lat: 13.7 }]) {
+    assert.throws(() => validateRecommendBody({ ...point, currentCrop: 'maize', priority: 'water' }, ctx), /inside El Salvador/);
   }
 });

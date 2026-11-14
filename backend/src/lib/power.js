@@ -111,13 +111,18 @@ export function parsePowerResponse(raw) {
  * Daily climate for a zone: live POWER data, or the stored fallback when POWER fails.
  * Returns { days, hasSoilMoisture, period, fallback }.
  */
+/**
+ * Live daily data for a zone; on any failure, the stored fallback of the zone (or, for a custom
+ * map point, of its nearest pilot zone) with fallback: true.
+ */
 export async function getZoneDaily(zone, options = {}) {
   try {
     const raw = await fetchPowerRaw(zone, options);
     return { ...parsePowerResponse(raw), fallback: false };
   } catch (error) {
-    console.warn(`[power] ${zone.id}: ${error.message} Using stored fallback data.`);
-    const raw = await loadFallback(zone.id);
-    return { ...parsePowerResponse(raw), fallback: true };
+    const fallbackZone = zone.fallbackZone ?? { id: zone.id, name: zone.name };
+    console.warn(`[power] ${zone.id}: ${error.message} Using stored fallback data of ${fallbackZone.id}.`);
+    const raw = await loadFallback(fallbackZone.id);
+    return { ...parsePowerResponse(raw), fallback: true, fallbackZone };
   }
 }

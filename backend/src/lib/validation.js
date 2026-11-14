@@ -3,6 +3,8 @@ import { PRIORITIES } from '../scoring/weights.js';
 export const RAIN_DELTA_RANGE = [-0.9, 1];
 export const HEAT_DELTA_RANGE = [-5, 5];
 export const MAX_CURRENT_CROPS = 4;
+/** Map points must fall inside this box around El Salvador (crop rules and seasons assume it). */
+export const EL_SALVADOR_BOUNDS = { minLat: 13.1, maxLat: 14.5, minLon: -90.2, maxLon: -87.6 };
 
 /** Error for invalid client input (HTTP 400). */
 export class ValidationError extends Error {
@@ -44,11 +46,45 @@ function cropIds(value, crops) {
   return ids;
 }
 
+/** Squared distance in degrees; enough to rank nearby points. */
+function distance2(a, b) {
+  return (a.lat - b.lat) ** 2 + (a.lon - b.lon) ** 2;
+}
+
+/** Pilot zone closest to a point (its stored data is the fallback for that point). */
+export function nearestZone(point, zones) {
+  return zones.reduce((best, zone) => (distance2(point, zone) < distance2(point, best) ? zone : best));
+}
+
+/**
+ * A map point { lat, lon } inside El Salvador becomes a custom zone. Coordinates are rounded to
+ * 2 decimals (~1 km), far below the ~50 km NASA POWER grid.
+ */
+function pointZone(lat, lon, zones) {
+  const { minLat, maxLat, minLon, maxLon } = EL_SALVADOR_BOUNDS;
+  const valid = [lat, lon].every((value) => typeof value === 'number' && Number.isFinite(value));
+  if (!valid || lat < minLat || lat > maxLat || lon < minLon || lon > maxLon) {
+    throw new ValidationError(`lat/lon must be numbers inside El Salvador (lat ${minLat}..${maxLat}, lon ${minLon}..${maxLon}).`);
+  }
+  const point = { lat: Math.round(lat * 100) / 100, lon: Math.round(lon * 100) / 100 };
+  const nearest = nearestZone(point, zones);
+  return { id: 'custom', name: 'Selected location', ...point, fallbackZone: { id: nearest.id, name: nearest.name } };
+}
+
+/** Resolves the location: a pilot zone id (`zone`) or a map point (`lat` + `lon`). */
+function resolveZone(body, zones) {
+  if (body.zone === undefined && (body.lat !== undefined || body.lon !== undefined)) {
+    return pointZone(body.lat, body.lon, zones);
+  }
+  const zone = zones.find((candidate) => candidate.id === body.zone);
+  if (!zone) throw new ValidationError(`Send lat and lon, or zone as one of: ${zones.map((z) => z.id).join(', ')}.`);
+  return zone;
+}
+
 /** Validates POST /api/recommend input and returns normalised values. */
 export function validateRecommendBody(rawBody, { zones, crops }) {
   const body = parseBody(rawBody);
-  const zone = zones.find((candidate) => candidate.id === body.zone);
-  if (!zone) throw new ValidationError(`zone must be one of: ${zones.map((z) => z.id).join(', ')}.`);
+  const zone = resolveZone(body, zones);
   if (!PRIORITIES.includes(body.priority)) throw new ValidationError(`priority must be one of: ${PRIORITIES.join(', ')}.`);
   return {
     zone,

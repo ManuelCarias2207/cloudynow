@@ -8,6 +8,7 @@
     "node": ">=20"
   },
   "scripts": {
+    "dev": "node scripts/devServer.js",
     "test": "node --test",
     "preprocess": "node scripts/preprocess/fetchFallback.js"
   }
