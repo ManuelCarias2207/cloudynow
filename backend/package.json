@@ -1,0 +1,14 @@
+{
+  "name": "siembra-satelital-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Serverless API that compares crop rotations using NASA POWER climate data.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test",
+    "preprocess": "node scripts/preprocess/fetchFallback.js"
+  }
+}
