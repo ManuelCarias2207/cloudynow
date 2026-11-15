@@ -1,47 +1,143 @@
-import { CartesianGrid, Legend, Line, LineChart, ReferenceArea, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { useTranslation } from 'react-i18next';
+import { Area, CartesianGrid, ComposedChart, Line, ReferenceArea, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import {
+  AXIS_PROPS,
+  CHART_COLORS,
+  ChartHeadline,
+  LegendItem,
+  useMonthNames,
+  useNumberFormat,
+  useActiveMonth,
+  usePrefersReducedMotion,
+} from './chartUtils.jsx';
 
-/** Contiguous runs of bare months as [startLabel, endLabel] pairs for shading. */
-function bareRanges(monthly, bareWindowMonths) {
-  const bare = new Set(bareWindowMonths);
-  const ranges = [];
-  monthly.forEach((entry, index) => {
-    if (!bare.has(entry.month)) return;
-    const previous = monthly[index - 1];
-    if (previous && bare.has(previous.month)) ranges[ranges.length - 1][1] = entry.label;
-    else ranges.push([entry.label, entry.label]);
-  });
-  return ranges;
+const MONTH_TICKS = Array.from({ length: 12 }, (_, index) => index + 1);
+
+function mean(values) {
+  const valid = values.filter((value) => value !== null && value !== undefined);
+  return valid.length ? valid.reduce((sum, value) => sum + value, 0) / valid.length : null;
 }
 
-export default function SoilMoistureChart({ monthly, bareWindowMonths, hasSoilMoisture }) {
+export default function SoilMoistureChart({ monthly, bareWindowMonths, hasSoilMoisture, height = 140 }) {
+  const { t } = useTranslation();
+  const months = useMonthNames();
+  const format = useNumberFormat();
+  const animate = !usePrefersReducedMotion();
+  const [activeMonth, tooltipContent] = useActiveMonth();
+
   const data = monthly.map((entry) => ({
-    ...entry,
+    month: entry.month,
+    tempC: entry.tempC,
     soilPct: entry.soilMoisture === null ? null : Math.round(entry.soilMoisture * 100),
   }));
+  const showSoil = hasSoilMoisture && data.some((entry) => entry.soilPct !== null);
+  const active = data.find((entry) => entry.month === activeMonth);
+  const bare = new Set(bareWindowMonths);
+  const shown = active ?? { soilPct: mean(data.map((entry) => entry.soilPct)), tempC: mean(data.map((entry) => entry.tempC)) };
+  const tempText = `${format.decimal(shown.tempC)} °C`;
+
   return (
-    <div>
-      <h3 className="text-sm font-semibold">Soil moisture and temperature</h3>
-      <p className="mb-2 text-xs text-zinc-500">
-        {hasSoilMoisture ? 'Root-zone soil wetness (0% dry, 100% saturated)' : 'Soil moisture is not available for this point'} and
-        mean air temperature. The shaded area is the bare-field window.
-      </p>
-      <ResponsiveContainer width="100%" height={220}>
-        <LineChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: -4 }}>
-          <CartesianGrid vertical={false} stroke="#e4e4e7" />
-          {bareRanges(monthly, bareWindowMonths).map(([start, end]) => (
-            <ReferenceArea key={start} yAxisId="soil" x1={start} x2={end} fill="#fde68a" fillOpacity={0.5} />
+    <figure className="space-y-3">
+      <ChartHeadline
+        title={t('charts.soil.title')}
+        label={active ? months.long(active.month) : showSoil ? t('charts.soil.average') : t('charts.soil.averageTemp')}
+        value={showSoil ? `${format.integer(shown.soilPct)}%` : tempText}
+        unit={showSoil ? `· ${tempText}` : null}
+        tag={active && bare.has(active.month) ? t('charts.bareTag') : null}
+        caption={active ? null : showSoil ? t('charts.soil.scale') : t('charts.soil.missing')}
+      />
+      <div aria-hidden="true">
+        <ResponsiveContainer width="100%" height={height}>
+          <ComposedChart data={data} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
+            <defs>
+              <linearGradient id="soil-fill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={CHART_COLORS.soil} stopOpacity={0.25} />
+                <stop offset="100%" stopColor={CHART_COLORS.soil} stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid vertical={false} stroke={CHART_COLORS.grid} strokeDasharray="2 4" />
+            {[...bare].map((month) => (
+              <ReferenceArea
+                key={month}
+                yAxisId="temp"
+                x1={month - 0.5}
+                x2={month + 0.5}
+                fill={CHART_COLORS.bareSoft}
+                fillOpacity={0.7}
+                strokeOpacity={0}
+                ifOverflow="hidden"
+              />
+            ))}
+            <XAxis
+              dataKey="month"
+              type="number"
+              domain={[0.5, 12.5]}
+              ticks={MONTH_TICKS}
+              tickFormatter={months.short}
+              {...AXIS_PROPS}
+            />
+            <YAxis yAxisId="temp" width={36} domain={['dataMin - 2', 'dataMax + 2']} tickCount={4} unit="°" allowDecimals={false} {...AXIS_PROPS} />
+            <YAxis yAxisId="soil" orientation="right" width={36} domain={[0, 100]} ticks={[0, 50, 100]} unit="%" hide={!showSoil} {...AXIS_PROPS} />
+            <Tooltip
+              cursor={{ stroke: CHART_COLORS.axis, strokeDasharray: '3 3' }}
+              wrapperStyle={{ display: 'none' }}
+              content={tooltipContent}
+            />
+            {showSoil && (
+              <Area
+                yAxisId="soil"
+                type="monotone"
+                dataKey="soilPct"
+                stroke={CHART_COLORS.soil}
+                strokeWidth={2}
+                fill="url(#soil-fill)"
+                activeDot={{ r: 4 }}
+                isAnimationActive={animate}
+                animationDuration={800}
+              />
+            )}
+            <Line
+              yAxisId="temp"
+              type="monotone"
+              dataKey="tempC"
+              stroke={CHART_COLORS.temp}
+              strokeWidth={2}
+              strokeDasharray="5 4"
+              dot={false}
+              activeDot={{ r: 4 }}
+              isAnimationActive={animate}
+              animationDuration={800}
+            />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+      <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
+        {showSoil && <LegendItem color={CHART_COLORS.soil} shape="line" label={t('charts.soil.soil')} />}
+        <LegendItem color={CHART_COLORS.temp} shape="dashed" label={t('charts.soil.temp')} />
+        <LegendItem color={CHART_COLORS.bareSoft} label={t('charts.bareLegend')} />
+      </ul>
+      <table className="sr-only">
+        <caption>{t('charts.soil.title')}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{t('charts.month')}</th>
+            {showSoil && <th scope="col">{t('charts.soil.soil')} (%)</th>}
+            <th scope="col">{t('charts.soil.temp')} (°C)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((entry) => (
+            <tr key={entry.month}>
+              <th scope="row">
+                {months.long(entry.month)}
+                {bare.has(entry.month) ? ` (${t('charts.bareTag')})` : ''}
+              </th>
+              {showSoil && <td>{entry.soilPct ?? '–'}</td>}
+              <td>{format.decimal(entry.tempC)}</td>
+            </tr>
           ))}
-          <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={11} />
-          <YAxis yAxisId="soil" domain={[0, 100]} tickLine={false} axisLine={false} fontSize={11} unit="%" width={48} />
-          <YAxis yAxisId="temp" orientation="right" tickLine={false} axisLine={false} fontSize={11} unit="°C" width={44} domain={['dataMin - 2', 'dataMax + 2']} />
-          <Tooltip formatter={(value, name) => (name === 'Soil moisture' ? `${value}%` : `${value} °C`)} />
-          <Legend iconType="plainline" wrapperStyle={{ fontSize: 12 }} />
-          {hasSoilMoisture && (
-            <Line yAxisId="soil" type="monotone" dataKey="soilPct" name="Soil moisture" stroke="#65a30d" strokeWidth={2} dot={false} />
-          )}
-          <Line yAxisId="temp" type="monotone" dataKey="tempC" name="Temperature" stroke="#e11d48" strokeWidth={2} dot={false} />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
+        </tbody>
+      </table>
+    </figure>
   );
 }
