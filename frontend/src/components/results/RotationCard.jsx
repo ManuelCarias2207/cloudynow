@@ -6,6 +6,20 @@ import EvidenceList from './EvidenceList.jsx';
 import InfoGaps from './InfoGaps.jsx';
 import { toPercent, cn } from '../../lib/utils.js';
 
+function Section({ title, children }) {
+  return (
+    <details className="group text-sm">
+      <summary className="flex cursor-pointer list-none items-center gap-1 rounded-sm text-xs font-medium text-muted transition-colors hover:text-ink [&::-webkit-details-marker]:hidden">
+        <svg aria-hidden="true" viewBox="0 0 16 16" className="size-3.5 transition-transform duration-200 ease-standard group-open:rotate-90">
+          <path d="m6 4 4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        {title}
+      </summary>
+      <div className="mt-2 animate-enter">{children}</div>
+    </details>
+  );
+}
+
 function TextList({ items, tone }) {
   return (
     <ul className="space-y-1 text-sm">
@@ -22,16 +36,22 @@ function TextList({ items, tone }) {
 export default function RotationCard({ rotation, weights, best }) {
   const { t } = useTranslation();
   return (
-    <Card className={cn('flex flex-col gap-4', best && 'ring-2 ring-brand')}>
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="text-xs text-muted">{t('results.option', { id: rotation.id })}</p>
-          <h3 className="font-semibold">{rotation.name}</h3>
+    <Card selected={best} interactive enter className="flex flex-col gap-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <Badge size="sm" outline tone={best ? 'good' : 'neutral'}>
+            {t('results.option', { id: rotation.id })}
+          </Badge>
+          <h3 className="mt-2 font-semibold text-balance">{rotation.name}</h3>
           <p className="mt-1 text-sm text-muted">{rotation.crops.map((crop) => crop.name).join(' → ')}</p>
         </div>
-        <div className="text-right">
-          <p className="text-3xl font-semibold">{toPercent(rotation.scores.total)}</p>
-          {best && <Badge tone="good">{t('results.best')}</Badge>}
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <p className={cn('text-3xl font-semibold tabular-nums', best && 'text-brand')}>{toPercent(rotation.scores.total)}</p>
+          {best && (
+            <Badge tone="good" dot>
+              {t('results.best')}
+            </Badge>
+          )}
         </div>
       </div>
       <ScoreBreakdown scores={rotation.scores} weights={weights} />
@@ -43,18 +63,14 @@ export default function RotationCard({ rotation, weights, best }) {
         <p className="mb-1 text-xs font-medium text-muted">{t('results.risks')}</p>
         <TextList items={rotation.risks} tone="bg-maize" />
       </div>
-      <details className="text-sm">
-        <summary className="cursor-pointer rounded-sm text-xs font-medium text-muted hover:text-ink">{t('results.evidence')}</summary>
-        <div className="mt-2">
+      <div className="flex flex-col gap-2 border-t border-line pt-3">
+        <Section title={t('results.evidence')}>
           <EvidenceList evidence={rotation.evidence} />
-        </div>
-      </details>
-      <details className="text-sm">
-        <summary className="cursor-pointer rounded-sm text-xs font-medium text-muted hover:text-ink">{t('results.gaps')}</summary>
-        <div className="mt-2">
+        </Section>
+        <Section title={t('results.gaps')}>
           <InfoGaps gaps={rotation.informationGaps} />
-        </div>
-      </details>
+        </Section>
+      </div>
     </Card>
   );
 }
