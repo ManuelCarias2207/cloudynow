@@ -6,9 +6,9 @@ import EvidenceList from './EvidenceList.jsx';
 import InfoGaps from './InfoGaps.jsx';
 import { toPercent, cn } from '../../lib/utils.js';
 
-function Section({ title, children }) {
+function Section({ title, open, children }) {
   return (
-    <details className="group text-sm">
+    <details open={open} className="group text-sm">
       <summary className="flex cursor-pointer list-none items-center gap-1 rounded-sm text-xs font-medium text-muted transition-colors hover:text-ink [&::-webkit-details-marker]:hidden">
         <svg aria-hidden="true" viewBox="0 0 16 16" className="size-3.5 transition-transform duration-200 ease-standard group-open:rotate-90">
           <path d="m6 4 4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
@@ -33,10 +33,11 @@ function TextList({ items, tone }) {
   );
 }
 
-export default function RotationCard({ rotation, weights, best }) {
+/** Summary: name, total and the score bars. `action` renders at the bottom (e.g. a "see detail" button). */
+export default function RotationCard({ rotation, weights, best, action, className }) {
   const { t } = useTranslation();
   return (
-    <Card selected={best} interactive enter className="flex flex-col gap-4">
+    <Card selected={best} interactive enter className={cn('flex flex-col gap-3', className)}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <Badge size="sm" outline tone={best ? 'good' : 'neutral'}>
@@ -55,22 +56,34 @@ export default function RotationCard({ rotation, weights, best }) {
         </div>
       </div>
       <ScoreBreakdown scores={rotation.scores} weights={weights} />
-      <div>
-        <p className="mb-1 text-xs font-medium text-muted">{t('results.benefits')}</p>
-        <TextList items={rotation.benefits} tone="bg-brand" />
+      {action && <div className="mt-auto">{action}</div>}
+    </Card>
+  );
+}
+
+/** Benefits, risks, NASA evidence and information gaps of one rotation. */
+export function RotationDetail({ rotation, className }) {
+  const { t } = useTranslation();
+  return (
+    <div className={cn('grid gap-5 md:grid-cols-2', className)}>
+      <div className="grid content-start gap-4">
+        <div>
+          <p className="mb-1 text-xs font-medium text-muted">{t('results.benefits')}</p>
+          <TextList items={rotation.benefits} tone="bg-brand" />
+        </div>
+        <div>
+          <p className="mb-1 text-xs font-medium text-muted">{t('results.risks')}</p>
+          <TextList items={rotation.risks} tone="bg-maize" />
+        </div>
       </div>
-      <div>
-        <p className="mb-1 text-xs font-medium text-muted">{t('results.risks')}</p>
-        <TextList items={rotation.risks} tone="bg-maize" />
-      </div>
-      <div className="flex flex-col gap-2 border-t border-line pt-3">
-        <Section title={t('results.evidence')}>
+      <div className="flex flex-col gap-2 md:border-l md:border-line md:pl-5">
+        <Section title={t('results.evidence')} open>
           <EvidenceList evidence={rotation.evidence} />
         </Section>
         <Section title={t('results.gaps')}>
           <InfoGaps gaps={rotation.informationGaps} />
         </Section>
       </div>
-    </Card>
+    </div>
   );
 }

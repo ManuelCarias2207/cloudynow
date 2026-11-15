@@ -6,7 +6,7 @@ import { cn } from '../../lib/utils.js';
  * Controlled with `value` + `onChange`, or uncontrolled with `defaultValue`. Arrow keys, Home and End move between tabs.
  * When items carry `content`, the active panel renders below the list.
  */
-export default function Tabs({ items, value, defaultValue, onChange, label, className, listClassName }) {
+export default function Tabs({ items, value, defaultValue, onChange, label, className, listClassName, panelClassName }) {
   const base = useId();
   const [own, setOwn] = useState(defaultValue ?? items[0]?.id);
   const active = value ?? own;
@@ -92,7 +92,7 @@ export default function Tabs({ items, value, defaultValue, onChange, label, clas
           id={`${base}-panel-${current.id}`}
           aria-labelledby={`${base}-tab-${current.id}`}
           tabIndex={0}
-          className="mt-4 animate-enter rounded-md"
+          className={cn('mt-3 animate-enter rounded-md', panelClassName)}
         >
           {current.content}
         </div>
