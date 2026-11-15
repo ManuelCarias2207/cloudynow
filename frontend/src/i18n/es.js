@@ -99,5 +99,14 @@ export default {
     gaps: 'Lo que no sabemos',
   },
   ui: { loading: 'Cargando…' },
+  layout: {
+    resultsTabs: 'Secciones de resultados',
+    compare: 'Comparar',
+    detail: 'Detalle',
+    climate: 'Clima',
+    options: 'Opciones de rotación',
+    viewDetail: 'Ver detalle',
+    loadingCharts: 'Cargando gráficas…',
+  },
   notFound: { title: 'Página no encontrada', home: 'Ir al inicio' },
 };
