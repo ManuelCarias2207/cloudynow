@@ -33,3 +33,13 @@ body {
     opacity: 0;
   }
 }
+
+.map-cell-label {
+  pointer-events: none;
+  border-radius: var(--radius-sm);
+  background: rgb(255 253 248 / 0.9);
+  padding: 1px 6px;
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-brand);
+}

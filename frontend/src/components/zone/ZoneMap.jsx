@@ -44,13 +44,14 @@ function mapPadding(bottomInset) {
 
 /**
  * MapLibre map: click to pick a point. `selected` = { lat, lon, source } shows the pin and the
- * NASA POWER cell; picks from search or GPS ('search' | 'gps') also move the map there.
+ * NASA POWER cell outline when `showCell` is on; picks from search or GPS ('search' | 'gps') also move the map there.
  */
-export default function ZoneMap({ selected, onPick, bottomInset = 0 }) {
+export default function ZoneMap({ selected, onPick, showCell = false, bottomInset = 0 }) {
   const { t } = useTranslation();
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const markerRef = useRef(null);
+  const cellLabelRef = useRef(null);
   const onPickRef = useRef(onPick);
   onPickRef.current = onPick;
   const [loaded, setLoaded] = useState(false);
@@ -77,12 +78,12 @@ export default function ZoneMap({ selected, onPick, bottomInset = 0 }) {
     map.on('load', () => {
       map.setPadding(padding);
       map.addSource('power-cell', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
-      map.addLayer({ id: 'power-cell-fill', type: 'fill', source: 'power-cell', paint: { 'fill-color': readToken('--color-accent'), 'fill-opacity': 0.18 } });
       map.addLayer({
         id: 'power-cell-line',
         type: 'line',
         source: 'power-cell',
-        paint: { 'line-color': readToken('--color-brand'), 'line-width': 1.5, 'line-dasharray': [2, 2] },
+        layout: { visibility: 'none' },
+        paint: { 'line-color': readToken('--color-brand'), 'line-opacity': 0.6, 'line-width': 1, 'line-dasharray': [3, 3] },
       });
       setLoaded(true);
     });
@@ -103,6 +104,8 @@ export default function ZoneMap({ selected, onPick, bottomInset = 0 }) {
       markerRef.current?.remove();
       markerRef.current = null;
       cell.setData({ type: 'FeatureCollection', features: [] });
+      cellLabelRef.current?.remove();
+      cellLabelRef.current = null;
       return;
     }
     const position = [selected.lon, selected.lat];
@@ -120,11 +123,29 @@ export default function ZoneMap({ selected, onPick, bottomInset = 0 }) {
     }
     const feature = cellFeature(selected);
     cell.setData(feature);
+    const [ring] = feature.geometry.coordinates;
+    if (!cellLabelRef.current) {
+      const element = document.createElement('span');
+      element.className = 'map-cell-label';
+      cellLabelRef.current = new maplibregl.Marker({ element, anchor: 'top-left', offset: [4, 4] });
+    }
+    cellLabelRef.current.setLngLat(ring[3]);
     if (selected.source && selected.source !== 'map') {
-      const [ring] = feature.geometry.coordinates;
       map.fitBounds([ring[0], ring[2]], { padding: { ...mapPadding(bottomInset), top: 40 }, maxZoom: 11 });
     }
   }, [selected, loaded]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!loaded) return;
+    const visible = showCell && Boolean(selected);
+    map.setLayoutProperty('power-cell-line', 'visibility', visible ? 'visible' : 'none');
+    const label = cellLabelRef.current;
+    if (!label) return;
+    label.getElement().textContent = t('zone.cellLabel');
+    if (visible) label.addTo(map);
+    else label.remove();
+  }, [showCell, selected, loaded, t]);
 
   useEffect(() => {
     const map = mapRef.current;

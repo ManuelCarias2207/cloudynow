@@ -20,6 +20,8 @@ export default function ZonePage() {
   const [message, setMessage] = useState('');
   const [locating, setLocating] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [cellPinned, setCellPinned] = useState(false);
+  const [cellPreview, setCellPreview] = useState(false);
   const [sheetHeight, setSheetHeight] = useState(0);
   const sheetRef = useRef(null);
 
@@ -67,7 +69,7 @@ export default function ZonePage() {
     <div className="h-full md:grid md:grid-cols-[minmax(0,1fr)_380px]">
       <div className="absolute inset-0 md:static">
         <Suspense fallback={<div role="status" aria-label={t('zone.loadingMap')} className="h-full w-full bg-surface-2" />}>
-          <ZoneMap selected={location} onPick={pick} bottomInset={sheetHeight} />
+          <ZoneMap selected={location} onPick={pick} showCell={cellPinned || cellPreview} bottomInset={sheetHeight} />
         </Suspense>
       </div>
       <section
@@ -102,7 +104,7 @@ export default function ZonePage() {
                 {message}
               </p>
             )}
-            <ZoneCard location={location} />
+            <ZoneCard location={location} showCell={cellPinned} onToggleCell={() => setCellPinned((on) => !on)} onPreviewCell={setCellPreview} />
             <p className="text-xs text-muted">{t('footer')}</p>
           </div>
         </div>
