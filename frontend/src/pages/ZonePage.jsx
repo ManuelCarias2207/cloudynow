@@ -9,9 +9,13 @@ import { LocateIcon } from '../components/ui/icons.jsx';
 import { useFlow } from '../hooks/useFlow.js';
 import { placeName } from '../services/api.js';
 import { EL_SALVADOR_BOUNDS } from '../lib/constants.js';
-import { cn, isInsideBounds } from '../lib/utils.js';
+import { isInsideBounds } from '../lib/utils.js';
 
 const ZoneMap = lazy(() => import('../components/zone/ZoneMap.jsx'));
+
+// GPS keeps refining after the first fix: stop once this good or after this long.
+const GOOD_ACCURACY_M = 20;
+const REFINE_MS = 20000;
 
 export default function ZonePage() {
   const navigate = useNavigate();
@@ -19,30 +23,49 @@ export default function ZonePage() {
   const { location, setLocation } = useFlow();
   const [message, setMessage] = useState('');
   const [locating, setLocating] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
-  const [cellPinned, setCellPinned] = useState(false);
-  const [cellPreview, setCellPreview] = useState(false);
-  const [sheetHeight, setSheetHeight] = useState(0);
-  const sheetRef = useRef(null);
+  const [refining, setRefining] = useState(null); // accuracy in m while the GPS keeps improving
+  const [showCell, setShowCell] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
+  const watchRef = useRef(null);
+  const timerRef = useRef(null);
+  const bestRef = useRef(null);
 
+  const nameFor = async (point) => {
+    const label = await placeName(point);
+    setLocation((current) => (current?.lat === point.lat && current?.lon === point.lon ? { ...current, label, naming: false } : current));
+  };
+
+  const stopWatch = () => {
+    if (watchRef.current !== null) navigator.geolocation.clearWatch(watchRef.current);
+    watchRef.current = null;
+    clearTimeout(timerRef.current);
+    setLocating(false);
+    setRefining(null);
+  };
+
+  useEffect(() => () => stopWatch(), []);
+
+  // Fetch the map chunk only after the page has painted, so it never delays the first render.
   useEffect(() => {
-    const phone = window.matchMedia('(max-width: 767px)');
-    const observer = new ResizeObserver(([entry]) => setSheetHeight(phone.matches ? Math.round(entry.borderBoxSize[0].blockSize) : 0));
-    observer.observe(sheetRef.current);
-    return () => observer.disconnect();
+    const frame = requestAnimationFrame(() => setTimeout(() => setMapReady(true)));
+    return () => cancelAnimationFrame(frame);
   }, []);
 
-  const pick = async (point) => {
+  const pick = (point) => {
+    if (watchRef.current !== null && point.source !== 'gps') stopWatch();
     if (!isInsideBounds(point, EL_SALVADOR_BOUNDS)) {
       setMessage(t('zone.outside'));
       return;
     }
     setMessage('');
     setLocation({ ...point, label: point.label ?? null, naming: !point.label });
-    if (!point.label) {
-      const label = await placeName(point);
-      setLocation((current) => (current?.lat === point.lat && current?.lon === point.lon ? { ...current, label, naming: false } : current));
-    }
+    if (!point.label && point.source !== 'gps') nameFor(point);
+  };
+
+  const finishGps = () => {
+    const best = bestRef.current;
+    stopWatch();
+    if (best && isInsideBounds(best, EL_SALVADOR_BOUNDS)) nameFor(best);
   };
 
   const locate = () => {
@@ -50,72 +73,65 @@ export default function ZonePage() {
       setMessage(t('zone.geoUnsupported'));
       return;
     }
+    stopWatch();
+    bestRef.current = null;
     setLocating(true);
     setMessage('');
-    navigator.geolocation.getCurrentPosition(
+    watchRef.current = navigator.geolocation.watchPosition(
       (position) => {
-        setLocating(false);
         const { latitude, longitude, accuracy } = position.coords;
-        pick({ lat: latitude, lon: longitude, accuracy, source: 'gps' });
+        if (bestRef.current && accuracy >= bestRef.current.accuracy) return;
+        const point = { lat: latitude, lon: longitude, accuracy, source: 'gps' };
+        bestRef.current = point;
+        pick(point);
+        setRefining(accuracy);
+        if (accuracy <= GOOD_ACCURACY_M) finishGps();
       },
       (error) => {
-        setLocating(false);
+        if (bestRef.current) return finishGps();
+        stopWatch();
         const key = { 1: 'zone.geoDenied', 2: 'zone.geoUnavailable', 3: 'zone.geoTimeout' }[error.code] ?? 'zone.geoUnavailable';
         setMessage(t(key));
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
     );
+    timerRef.current = setTimeout(finishGps, REFINE_MS);
   };
 
+  const mapPlaceholder = <div role="status" aria-label={t('zone.loadingMap')} className="h-full w-full rounded-lg bg-surface-2 ring-1 ring-line" />;
+  const locateLabel = refining !== null ? t('zone.refining', { meters: Math.round(refining).toLocaleString() }) : locating ? t('zone.locating') : t('zone.useMyLocation');
+
   return (
-    <div className="h-full md:grid md:grid-cols-[minmax(0,1fr)_380px]">
-      <div className="absolute inset-0 md:static">
-        <Suspense fallback={<div role="status" aria-label={t('zone.loadingMap')} className="h-full w-full bg-surface-2" />}>
-          <ZoneMap selected={location} onPick={pick} showCell={cellPinned || cellPreview} bottomInset={sheetHeight} />
-        </Suspense>
-      </div>
-      <section
-        ref={sheetRef}
-        aria-labelledby="zone-title"
-        className="absolute inset-x-0 bottom-0 z-10 flex max-h-[50dvh] flex-col overflow-y-auto rounded-t-lg bg-surface shadow-pop md:static md:max-h-none md:rounded-none md:border-l md:border-line md:shadow-none"
-      >
-        <div className="flex flex-col gap-4 px-4 pt-3 md:pt-6">
-          <button
-            type="button"
-            aria-expanded={!collapsed}
-            aria-controls="zone-panel"
-            onClick={() => setCollapsed((value) => !value)}
-            className="-mx-1 min-h-9 cursor-pointer self-center rounded-md px-3 text-sm font-medium text-muted hover:text-ink md:hidden"
-          >
-            {collapsed ? t('zone.showPanel') : t('zone.hidePanel')}
-          </button>
-          <div className={cn('-mb-4', collapsed && 'hidden md:block')}>
-            <StepIndicator current={0} compact />
-          </div>
-          <h1 id="zone-title" className={cn('text-xl font-semibold', collapsed && 'sr-only md:not-sr-only')}>
-            {t('zone.title')}
-          </h1>
-          <div id="zone-panel" className={cn('flex flex-col gap-4', collapsed && 'hidden md:flex')}>
-            <PlaceSearch onPick={pick} />
-            <Button variant="secondary" onClick={locate} disabled={locating} className="self-start">
-              <LocateIcon className="size-4" />
-              {locating ? t('zone.locating') : t('zone.useMyLocation')}
-            </Button>
-            {message && (
-              <p role="alert" className="rounded-md bg-maize-soft px-3 py-2 text-sm text-maize-ink">
-                {message}
-              </p>
-            )}
-            <ZoneCard location={location} showCell={cellPinned} onToggleCell={() => setCellPinned((on) => !on)} onPreviewCell={setCellPreview} />
-            <p className="text-xs text-muted">{t('footer')}</p>
-          </div>
+    <>
+      <StepIndicator current={0} />
+      <h1 className="mb-4 text-xl font-semibold">{t('zone.title')}</h1>
+      <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_320px] md:items-start">
+        <div className="h-[300px] md:h-[clamp(320px,52vh,420px)]">
+          {mapReady ? (
+            <Suspense fallback={mapPlaceholder}>
+              <ZoneMap selected={location} onPick={pick} showCell={showCell} />
+            </Suspense>
+          ) : (
+            mapPlaceholder
+          )}
         </div>
-        <div className="sticky bottom-0 mt-auto bg-surface px-4 pt-3 pb-4">
-          <Button disabled={!location} onClick={() => navigate('/farm')} className="w-full">
+        <div className="flex flex-col gap-4">
+          <PlaceSearch onPick={pick} />
+          <Button variant="secondary" onClick={locate} disabled={locating} aria-live="polite" className="self-start">
+            <LocateIcon className="size-4" />
+            {locateLabel}
+          </Button>
+          {message && (
+            <p role="alert" className="rounded-md bg-maize-soft px-3 py-2 text-sm text-maize-ink">
+              {message}
+            </p>
+          )}
+          <ZoneCard location={location} showCell={showCell} onToggleCell={() => setShowCell((on) => !on)} />
+          <Button disabled={!location} onClick={() => navigate('/farm')}>
             {location ? t('zone.continue') : t('zone.pickToContinue')}
           </Button>
         </div>
-      </section>
-    </div>
+      </div>
+    </>
   );
 }

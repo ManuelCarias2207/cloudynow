@@ -3,7 +3,7 @@ import Card from '../ui/Card.jsx';
 import { cn } from '../../lib/utils.js';
 
 /** Shows the chosen point and a toggle for the NASA POWER cell its climate data comes from. */
-export default function ZoneCard({ location, showCell, onToggleCell, onPreviewCell }) {
+export default function ZoneCard({ location, showCell, onToggleCell }) {
   const { t } = useTranslation();
   if (!location) {
     return <Card className="text-sm text-muted">{t('zone.empty')}</Card>;
@@ -21,14 +21,12 @@ export default function ZoneCard({ location, showCell, onToggleCell, onPreviewCe
       )}
       {location.accuracy > 5000 && <p role="alert" className="mt-2 rounded-md bg-maize-soft px-3 py-2 text-sm text-maize-ink">{t('zone.lowAccuracy')}</p>}
       <p className="mt-2 text-xs text-muted">{t('zone.dragHint')}</p>
-      <div className="mt-3 border-t border-line pt-3" onMouseEnter={() => onPreviewCell(true)} onMouseLeave={() => onPreviewCell(false)}>
+      <div className="mt-3 border-t border-line pt-3">
         <p className="text-sm text-muted">{t('zone.cellNote')}</p>
         <button
           type="button"
           aria-pressed={showCell}
           onClick={onToggleCell}
-          onFocus={() => onPreviewCell(true)}
-          onBlur={() => onPreviewCell(false)}
           className={cn(
             'mt-2 inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-md px-3 text-sm font-medium ring-1',
             showCell ? 'bg-brand-soft text-brand ring-brand' : 'text-ink ring-line-strong hover:bg-surface-2',

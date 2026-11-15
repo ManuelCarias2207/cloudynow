@@ -27,6 +27,22 @@ body {
   filter: drop-shadow(0 2px 2px rgb(27 30 25 / 0.35));
 }
 
+/* Zoom controls sit below the expand button. */
+.zone-map .maplibregl-ctrl-top-right {
+  top: 52px;
+}
+
+.map-expanded {
+  animation: map-expand 200ms var(--ease-out);
+}
+
+@keyframes map-expand {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+
 @keyframes pin-drop {
   from {
     transform: translateY(-14px) scale(0.8);

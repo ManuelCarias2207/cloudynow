@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useTranslation } from 'react-i18next';
 import { EL_SALVADOR_BOUNDS, MAP_STYLE, SATELLITE_ATTRIBUTION, SATELLITE_TILES } from '../../lib/constants.js';
 import { cn, powerCell } from '../../lib/utils.js';
+import { CloseIcon, ExpandIcon } from '../ui/icons.jsx';
 
 const { minLat, maxLat, minLon, maxLon } = EL_SALVADOR_BOUNDS;
 const COUNTRY = [
@@ -37,16 +38,15 @@ function readToken(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
-/** `bottomInset` = px covered by the phone bottom sheet, so the map centers in the visible part. */
-function mapPadding(bottomInset) {
-  return { top: 24, left: 24, right: 24, bottom: bottomInset + 24 };
-}
+const PADDING = { top: 24, left: 24, right: 24, bottom: 24 };
+const PHONE = '(max-width: 767px)';
 
 /**
  * MapLibre map: click to pick a point. `selected` = { lat, lon, source } shows the pin and the
  * NASA POWER cell outline when `showCell` is on. The pin can be dragged to correct the point; picks from search or GPS ('search' | 'gps') also move the map there.
+ * Fills its parent (which reserves the height); the expand button opens it over the page below the header (full screen on phones).
  */
-export default function ZoneMap({ selected, onPick, showCell = false, bottomInset = 0 }) {
+export default function ZoneMap({ selected, onPick, showCell = false }) {
   const { t } = useTranslation();
   const containerRef = useRef(null);
   const mapRef = useRef(null);
@@ -56,9 +56,11 @@ export default function ZoneMap({ selected, onPick, showCell = false, bottomInse
   onPickRef.current = onPick;
   const [loaded, setLoaded] = useState(false);
   const [satellite, setSatellite] = useState(false);
+  const [expanded, setExpanded] = useState(null); // null = inline, else { top } in px
+  const expandButtonRef = useRef(null);
 
   useEffect(() => {
-    const padding = mapPadding(bottomInset);
+    const padding = PADDING;
     const map = new maplibregl.Map({
       container: containerRef.current,
       bounds: COUNTRY,
@@ -69,6 +71,9 @@ export default function ZoneMap({ selected, onPick, showCell = false, bottomInse
       renderWorldCopies: false,
       attributionControl: { compact: true },
       pixelRatio: Math.min(window.devicePixelRatio, 2),
+      // Inline on touch screens, one finger scrolls the page; two fingers move the map.
+      cooperativeGestures: window.matchMedia('(pointer: coarse)').matches,
+      locale: { 'CooperativeGesturesHandler.MobileHelpText': t('zone.twoFingers'), 'CooperativeGesturesHandler.WindowsHelpText': t('zone.ctrlZoom'), 'CooperativeGesturesHandler.MacHelpText': t('zone.cmdZoom') },
     });
     map.setStyle(MAP_STYLE, {
       transformStyle: (_previous, next) => ({ ...next, layers: next.layers.filter((layer) => !DROPPED_LAYERS.test(layer.id)) }),
@@ -92,9 +97,39 @@ export default function ZoneMap({ selected, onPick, showCell = false, bottomInse
     return () => map.remove();
   }, []);
 
-  useEffect(() => {
-    if (loaded) mapRef.current.easeTo({ padding: mapPadding(bottomInset), duration: 200 });
-  }, [bottomInset, loaded]);
+  useLayoutEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const center = map.getCenter();
+    const zoom = map.getZoom();
+    map.resize();
+    map.jumpTo({ center, zoom });
+    if (window.matchMedia('(pointer: coarse)').matches) {
+      if (expanded) map.cooperativeGestures.disable();
+      else map.cooperativeGestures.enable();
+    }
+    if (!expanded) return;
+    const { overflow } = document.body.style;
+    document.body.style.overflow = 'hidden';
+    const onKey = (event) => {
+      if (event.key === 'Escape') collapse();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = overflow;
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [expanded]);
+
+  function expand() {
+    const header = document.querySelector('header')?.getBoundingClientRect().bottom ?? 0;
+    setExpanded({ top: window.matchMedia(PHONE).matches ? 0 : Math.max(0, Math.round(header)) });
+  }
+
+  function collapse() {
+    setExpanded(null);
+    requestAnimationFrame(() => expandButtonRef.current?.focus());
+  }
 
   useEffect(() => {
     const map = mapRef.current;
@@ -136,7 +171,7 @@ export default function ZoneMap({ selected, onPick, showCell = false, bottomInse
     cellLabelRef.current.setLngLat(ring[3]);
     if (selected.source === 'search' || selected.source === 'gps') {
       const zoom = selected.source === 'gps' && !(selected.accuracy > 5000) ? 13 : 11;
-      map.flyTo({ center: position, zoom, padding: mapPadding(bottomInset), duration: 800 });
+      map.flyTo({ center: position, zoom, padding: PADDING, duration: 800 });
     }
   }, [selected, loaded]);
 
@@ -175,8 +210,28 @@ export default function ZoneMap({ selected, onPick, showCell = false, bottomInse
   }, [t, loaded]);
 
   return (
-    <div className="relative h-full w-full bg-surface-2">
+    <div
+      role={expanded ? 'dialog' : undefined}
+      aria-modal={expanded ? true : undefined}
+      aria-label={expanded ? t('zone.map') : undefined}
+      style={expanded ? { top: expanded.top } : undefined}
+      className={cn(
+        'zone-map bg-surface-2',
+        expanded ? 'map-expanded fixed inset-x-0 bottom-0 z-50' : 'relative h-full w-full overflow-hidden rounded-lg ring-1 ring-line',
+      )}
+    >
       <div ref={containerRef} className="h-full w-full" />
+      <button
+        ref={expandButtonRef}
+        type="button"
+        aria-label={expanded ? t('zone.collapseMap') : t('zone.expandMap')}
+        title={expanded ? undefined : t('zone.expandMap')}
+        onClick={expanded ? collapse : expand}
+        className="absolute top-2.5 right-2.5 inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-2 rounded-md bg-surface px-3 text-sm font-medium text-ink shadow-pop ring-1 ring-line-strong hover:bg-surface-2"
+      >
+        {expanded ? <CloseIcon className="size-4" /> : <ExpandIcon className="size-4" />}
+        {expanded && t('zone.collapseMap')}
+      </button>
       <button
         type="button"
         aria-pressed={satellite}
