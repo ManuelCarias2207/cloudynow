@@ -58,8 +58,8 @@ export function nearestZone(point, zones) {
 }
 
 /**
- * A map point { lat, lon } inside El Salvador becomes a custom zone. Coordinates are rounded to
- * 2 decimals (~1 km), far below the ~50 km NASA POWER grid.
+ * A map point { lat, lon } inside El Salvador becomes a custom zone. Coordinates are kept as sent:
+ * rounding could move a point near a cell edge into the neighbouring NASA POWER cell.
  */
 function pointZone(lat, lon, zones) {
   const { minLat, maxLat, minLon, maxLon } = EL_SALVADOR_BOUNDS;
@@ -67,7 +67,7 @@ function pointZone(lat, lon, zones) {
   if (!valid || lat < minLat || lat > maxLat || lon < minLon || lon > maxLon) {
     throw new ValidationError(`lat/lon must be numbers inside El Salvador (lat ${minLat}..${maxLat}, lon ${minLon}..${maxLon}).`);
   }
-  const point = { lat: Math.round(lat * 100) / 100, lon: Math.round(lon * 100) / 100 };
+  const point = { lat, lon };
   const nearest = nearestZone(point, zones);
   return { id: 'custom', name: 'Selected location', ...point, fallbackZone: { id: nearest.id, name: nearest.name } };
 }

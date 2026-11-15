@@ -44,7 +44,7 @@ function mapPadding(bottomInset) {
 
 /**
  * MapLibre map: click to pick a point. `selected` = { lat, lon, source } shows the pin and the
- * NASA POWER cell outline when `showCell` is on; picks from search or GPS ('search' | 'gps') also move the map there.
+ * NASA POWER cell outline when `showCell` is on. The pin can be dragged to correct the point; picks from search or GPS ('search' | 'gps') also move the map there.
  */
 export default function ZoneMap({ selected, onPick, showCell = false, bottomInset = 0 }) {
   const { t } = useTranslation();
@@ -113,8 +113,12 @@ export default function ZoneMap({ selected, onPick, showCell = false, bottomInse
       const element = document.createElement('div');
       element.className = 'map-pin';
       element.innerHTML = PIN_SVG;
-      markerRef.current = new maplibregl.Marker({ element, anchor: 'bottom' }).setLngLat(position).addTo(map);
-    } else {
+      markerRef.current = new maplibregl.Marker({ element, anchor: 'bottom', draggable: true }).setLngLat(position).addTo(map);
+      markerRef.current.on('dragend', () => {
+        const { lat, lng } = markerRef.current.getLngLat();
+        onPickRef.current({ lat, lon: lng, source: 'drag' });
+      });
+    } else if (selected.source !== 'drag') {
       markerRef.current.setLngLat(position);
       const svg = markerRef.current.getElement().firstElementChild;
       svg.style.animation = 'none';
@@ -130,8 +134,9 @@ export default function ZoneMap({ selected, onPick, showCell = false, bottomInse
       cellLabelRef.current = new maplibregl.Marker({ element, anchor: 'top-left', offset: [4, 4] });
     }
     cellLabelRef.current.setLngLat(ring[3]);
-    if (selected.source && selected.source !== 'map') {
-      map.fitBounds([ring[0], ring[2]], { padding: { ...mapPadding(bottomInset), top: 40 }, maxZoom: 11 });
+    if (selected.source === 'search' || selected.source === 'gps') {
+      const zoom = selected.source === 'gps' && !(selected.accuracy > 5000) ? 13 : 11;
+      map.flyTo({ center: position, zoom, padding: mapPadding(bottomInset), duration: 800 });
     }
   }, [selected, loaded]);
 

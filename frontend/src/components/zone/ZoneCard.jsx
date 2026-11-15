@@ -11,10 +11,16 @@ export default function ZoneCard({ location, showCell, onToggleCell, onPreviewCe
   return (
     <Card>
       <p className="text-xs text-muted">{t('zone.selected')}</p>
-      <p className="mt-1 font-medium">{location.label ?? t('zone.loadingName')}</p>
-      <p className="mt-1 text-xs text-muted">
-        {location.lat.toFixed(3)}, {location.lon.toFixed(3)}
+      {location.naming && <p className="mt-1 text-sm text-muted">{t('zone.loadingName')}</p>}
+      {location.label && <p className="mt-1 font-medium">{location.label}</p>}
+      <p className={location.label ? 'mt-1 text-xs text-muted' : 'mt-1 font-medium'}>
+        {location.lat.toFixed(5)}, {location.lon.toFixed(5)}
       </p>
+      {location.accuracy !== undefined && (
+        <p className="mt-1 text-xs text-muted">{t('zone.accuracy', { meters: Math.round(location.accuracy).toLocaleString() })}</p>
+      )}
+      {location.accuracy > 5000 && <p role="alert" className="mt-2 rounded-md bg-maize-soft px-3 py-2 text-sm text-maize-ink">{t('zone.lowAccuracy')}</p>}
+      <p className="mt-2 text-xs text-muted">{t('zone.dragHint')}</p>
       <div className="mt-3 border-t border-line pt-3" onMouseEnter={() => onPreviewCell(true)} onMouseLeave={() => onPreviewCell(false)}>
         <p className="text-sm text-muted">{t('zone.cellNote')}</p>
         <button

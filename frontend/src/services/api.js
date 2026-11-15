@@ -42,14 +42,16 @@ export async function searchPlaces(query, { signal, lang } = {}) {
   return places.filter((place, index) => places.findIndex((other) => other.label === place.label) === index);
 }
 
-/** Short place name for a point, or null. */
+/** Most specific place name for a point (colonia/cantón, then municipality, department), or null. Never moves the point. */
 export async function placeName({ lat, lon }) {
-  const params = new URLSearchParams({ lat, lon, format: 'jsonv2', zoom: '12' });
+  const params = new URLSearchParams({ lat, lon, format: 'jsonv2', zoom: '16', addressdetails: '1' });
   try {
     const response = await fetch(`${NOMINATIM}/reverse?${params}`);
     const place = await response.json();
     const a = place.address ?? {};
-    const parts = [a.village ?? a.town ?? a.city ?? a.municipality ?? a.county, a.state].filter(Boolean);
+    const local = a.neighbourhood ?? a.suburb ?? a.quarter ?? a.hamlet ?? a.village ?? a.city_district;
+    const municipality = a.town ?? a.city ?? a.municipality ?? a.county;
+    const parts = [...new Set([local, municipality, a.state].filter(Boolean))];
     return parts.length > 0 ? parts.join(', ') : null;
   } catch {
     return null;

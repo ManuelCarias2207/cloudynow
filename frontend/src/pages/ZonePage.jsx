@@ -38,10 +38,10 @@ export default function ZonePage() {
       return;
     }
     setMessage('');
-    setLocation({ ...point, label: point.label ?? null });
+    setLocation({ ...point, label: point.label ?? null, naming: !point.label });
     if (!point.label) {
       const label = await placeName(point);
-      setLocation((current) => (current?.lat === point.lat && current?.lon === point.lon ? { ...current, label: label ?? t('zone.unnamed') } : current));
+      setLocation((current) => (current?.lat === point.lat && current?.lon === point.lon ? { ...current, label, naming: false } : current));
     }
   };
 
@@ -55,13 +55,15 @@ export default function ZonePage() {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setLocating(false);
-        pick({ lat: position.coords.latitude, lon: position.coords.longitude, source: 'gps' });
+        const { latitude, longitude, accuracy } = position.coords;
+        pick({ lat: latitude, lon: longitude, accuracy, source: 'gps' });
       },
       (error) => {
         setLocating(false);
-        setMessage(error.code === error.PERMISSION_DENIED ? t('zone.geoDenied') : t('zone.geoFailed'));
+        const key = { 1: 'zone.geoDenied', 2: 'zone.geoUnavailable', 3: 'zone.geoTimeout' }[error.code] ?? 'zone.geoUnavailable';
+        setMessage(t(key));
       },
-      { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
     );
   };
 
