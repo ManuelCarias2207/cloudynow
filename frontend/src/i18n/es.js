@@ -84,6 +84,46 @@ export default {
     extremeHeatDaysPerYear: 'Días de calor al año',
     extremeHeatThresholdC: 'Umbral de calor (°C)',
   },
+  charts: {
+    title: 'Clima y suelo en tu zona',
+    source: 'Promedios mensuales de NASA POWER.',
+    sourcePeriod: 'Promedios mensuales de NASA POWER, {{start}}–{{end}}.',
+    month: 'Mes',
+    avg: 'Prom.',
+    bareTag: 'Suelo desnudo',
+    bareLegend: 'Ventana de suelo desnudo',
+    rain: {
+      title: 'Lluvia mensual',
+      total: 'Lluvia al año',
+      series: 'Lluvia',
+      hint: 'Señala un mes para ver su lluvia.',
+      summary: 'Lluvia mensual. {{total}} mm al año; mes más lluvioso {{wettest}}, mes más seco {{driest}}.',
+    },
+    soil: {
+      title: 'Humedad del suelo y temperatura',
+      average: 'Humedad del suelo y temperatura promedio',
+      averageTemp: 'Temperatura promedio',
+      soil: 'Humedad del suelo',
+      temp: 'Temperatura',
+      scale: 'Suelo: 0 % seco, 100 % saturado.',
+      missing: 'No hay datos de humedad del suelo para este punto.',
+    },
+    glossary: {
+      title: '¿Qué significa?',
+      bareWindow: {
+        term: 'Ventana de suelo desnudo',
+        text: 'Meses con menos de 50 mm de lluvia y el suelo más seco de lo normal. En esos meses el terreno suele quedar sin cobertura, y el viento y las primeras lluvias fuertes pueden arrastrar el suelo.',
+      },
+      soilMoisture: {
+        term: 'Humedad del suelo',
+        text: 'Cuánta agua guarda el suelo alrededor de las raíces, medida desde el espacio. Valores bajos significan que a las plantas les cuesta encontrar agua.',
+      },
+      drySpell: {
+        term: 'Racha seca',
+        text: 'Días seguidos casi sin lluvia durante la época lluviosa. Las rachas secas largas pueden dañar el cultivo cuando está en floración.',
+      },
+    },
+  },
   results: {
     title: 'Tres rotaciones para tu finca',
     change: 'Cambiar respuestas',

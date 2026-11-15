@@ -84,6 +84,46 @@ export default {
     extremeHeatDaysPerYear: 'Hot days per year',
     extremeHeatThresholdC: 'Heat threshold (°C)',
   },
+  charts: {
+    title: 'Climate and soil here',
+    source: 'Monthly averages from NASA POWER.',
+    sourcePeriod: 'Monthly averages from NASA POWER, {{start}}–{{end}}.',
+    month: 'Month',
+    avg: 'Avg',
+    bareTag: 'Bare field',
+    bareLegend: 'Bare-field window',
+    rain: {
+      title: 'Monthly rainfall',
+      total: 'Rain per year',
+      series: 'Rain',
+      hint: 'Point at a month to see its rain.',
+      summary: 'Monthly rainfall. {{total}} mm per year; wettest month {{wettest}}, driest month {{driest}}.',
+    },
+    soil: {
+      title: 'Soil moisture and temperature',
+      average: 'Average soil moisture and temperature',
+      averageTemp: 'Average temperature',
+      soil: 'Soil moisture',
+      temp: 'Temperature',
+      scale: 'Soil: 0% dry, 100% saturated.',
+      missing: 'Soil moisture is not available for this point.',
+    },
+    glossary: {
+      title: 'What does it mean?',
+      bareWindow: {
+        term: 'Bare-field window',
+        text: 'Months with less than 50 mm of rain and drier-than-usual soil. Fields are often left uncovered then, so wind and the first heavy rains can wash soil away.',
+      },
+      soilMoisture: {
+        term: 'Soil moisture',
+        text: 'How much water the soil holds around the roots, measured from space. Low values mean plants struggle to find water.',
+      },
+      drySpell: {
+        term: 'Dry spell',
+        text: 'Days in a row with almost no rain during the rainy season. Long dry spells can hurt crops when they are flowering.',
+      },
+    },
+  },
   results: {
     title: 'Three rotations for your farm',
     change: 'Change answers',
