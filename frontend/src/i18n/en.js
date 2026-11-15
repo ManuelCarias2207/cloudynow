@@ -98,5 +98,6 @@ export default {
     evidence: 'NASA evidence',
     gaps: "What we don't know",
   },
+  ui: { loading: 'Loading…' },
   notFound: { title: 'Page not found', home: 'Go home' },
 };
