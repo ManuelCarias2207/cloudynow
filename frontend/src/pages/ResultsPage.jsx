@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import StepIndicator from '../components/layout/StepIndicator.jsx';
 import ClimateCharts from '../components/charts/ClimateCharts.jsx';
 import RotationComparison from '../components/results/RotationComparison.jsx';
@@ -11,6 +12,8 @@ import { recommend } from '../services/api.js';
 
 export default function ResultsPage() {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const { location, currentCrops, priority } = useFlow();
   const [state, setState] = useState({ status: 'loading' });
   const ready = location && currentCrops.length > 0 && priority;
@@ -19,13 +22,13 @@ export default function ResultsPage() {
     if (!ready) return undefined;
     let active = true;
     setState({ status: 'loading' });
-    recommend({ lat: location.lat, lon: location.lon, currentCrops, priority })
+    recommend({ lat: location.lat, lon: location.lon, currentCrops, priority, lang })
       .then((data) => active && setState({ status: 'done', data }))
       .catch((error) => active && setState({ status: 'error', message: error.message }));
     return () => {
       active = false;
     };
-  }, [ready, location, currentCrops, priority]);
+  }, [ready, location, currentCrops, priority, lang]);
 
   if (!ready) return <Navigate to="/farm" replace />;
 
@@ -34,25 +37,25 @@ export default function ResultsPage() {
       <StepIndicator current={2} />
       <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h1 className="text-xl font-semibold">Three rotations for your farm</h1>
-          <p className="text-sm text-zinc-500">{location.label ?? `${location.lat.toFixed(3)}, ${location.lon.toFixed(3)}`}</p>
+          <h1 className="text-xl font-semibold">{t('results.title')}</h1>
+          <p className="text-sm text-muted">{location.label ?? `${location.lat.toFixed(3)}, ${location.lon.toFixed(3)}`}</p>
         </div>
         <Button variant="secondary" onClick={() => navigate('/farm')}>
-          Change answers
+          {t('results.change')}
         </Button>
       </div>
-      {state.status === 'loading' && <p className="text-sm text-zinc-500">Reading 10 years of NASA POWER data…</p>}
-      {state.status === 'error' && <p className="text-sm text-red-700">{state.message}</p>}
+      {state.status === 'loading' && <p className="text-sm text-muted">{t('results.loading')}</p>}
+      {state.status === 'error' && <p className="text-sm text-danger">{state.message}</p>}
       {state.status === 'done' && (
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2">
-            {state.data.similar && <Badge tone="warn">Top options are very similar</Badge>}
-            {state.data.fallback && <Badge tone="warn">Using stored data</Badge>}
+            {state.data.similar && <Badge tone="warn">{t('results.similar')}</Badge>}
+            {state.data.fallback && <Badge tone="warn">{t('results.stored')}</Badge>}
             <Badge>
-              {state.data.indicators.meanAnnualRainMm} mm rain/year · dry spell {state.data.indicators.longestDrySpellDays} days
+              {t('results.summary', { rain: state.data.indicators.meanAnnualRainMm, days: state.data.indicators.longestDrySpellDays })}
             </Badge>
           </div>
-          <p className="text-sm text-zinc-600">{state.data.confidenceNote}</p>
+          <p className="text-sm text-muted">{state.data.confidenceNote}</p>
           <RotationComparison rotations={state.data.rotations} weights={state.data.weights} />
           <ClimateCharts
             monthly={state.data.monthly}

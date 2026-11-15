@@ -1,3 +1,3 @@
 export default function SupportNotice({ text }) {
-  return <p className="rounded-xl bg-zinc-100 p-4 text-sm text-zinc-700">{text}</p>;
+  return <p className="rounded-md bg-surface-2 p-4 text-sm text-ink">{text}</p>;
 }

@@ -1,10 +1,61 @@
 @import 'tailwindcss';
-@import 'maplibre-gl/dist/maplibre-gl.css';
-
-@theme {
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-}
+@import './styles/tokens.css';
 
 body {
-  @apply bg-zinc-50 text-zinc-900 antialiased;
+  @apply bg-cream font-sans text-ink antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    transition-duration: 0.01ms !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.map-pin svg {
+  display: block;
+  transform-origin: 50% 100%;
+  animation: pin-drop 180ms var(--ease-out);
+  filter: drop-shadow(0 2px 2px rgb(27 30 25 / 0.35));
+}
+
+/* Zoom controls sit below the expand button. */
+.zone-map .maplibregl-ctrl-top-right {
+  top: 52px;
+}
+
+.map-expanded {
+  animation: map-expand 200ms var(--ease-out);
+}
+
+@keyframes map-expand {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+
+@keyframes pin-drop {
+  from {
+    transform: translateY(-14px) scale(0.8);
+    opacity: 0;
+  }
+}
+
+.map-cell-label {
+  pointer-events: none;
+  border-radius: var(--radius-sm);
+  background: rgb(255 253 248 / 0.9);
+  padding: 1px 6px;
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-brand);
 }

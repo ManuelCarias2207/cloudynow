@@ -26,6 +26,7 @@ test('rejects invalid input with clear 400 errors', async () => {
     [{ zone: 'sonsonate', currentCrop: 'maize', priority: 'yield' }, /priority/],
     [{ zone: 'sonsonate', currentCrop: 'maize', priority: 'water', rainDelta: -2 }, /rainDelta/],
     [{ zone: 'sonsonate', currentCrop: 'maize', priority: 'water', heatDelta: '2' }, /heatDelta/],
+    [{ zone: 'sonsonate', currentCrop: 'maize', priority: 'water', lang: 'fr' }, /lang/],
     ['{not json', /valid JSON/],
   ];
   for (const [body, message] of bad) {
@@ -36,7 +37,7 @@ test('rejects invalid input with clear 400 errors', async () => {
 test('accepts a map point inside El Salvador and links its nearest pilot zone', async () => {
   const ctx = await context();
   const input = validateRecommendBody({ lat: 14.0312, lon: -88.9401, currentCrop: 'maize', priority: 'water' }, ctx);
-  assert.deepEqual(input.zone, { id: 'custom', name: 'Selected location', lat: 14.03, lon: -88.94, fallbackZone: { id: 'sonsonate', name: 'Sonsonate' } });
+  assert.deepEqual(input.zone, { id: 'custom', name: 'Selected location', lat: 14.0312, lon: -88.9401, fallbackZone: { id: 'sonsonate', name: 'Sonsonate' } });
   assert.equal(nearestZone({ lat: 13.4, lon: -88.2 }, ctx.zones).id, 'san-miguel');
 });
 

@@ -80,3 +80,17 @@ test('a map point uses its nearest pilot zone data when NASA POWER fails', async
   assert.equal(result.indicators.meanAnnualRainMm, 1506);
   assert.ok(result.rotations[0].informationGaps.some((text) => text.includes('nearest pilot zone (San Miguel')));
 });
+
+test('lang=es translates texts but keeps ids, scores and NASA numbers', async () => {
+  const base = { zone: await findZone('usulutan'), currentCrops: ['maize', 'bean'], priority: 'water', rainDelta: 0, heatDelta: 0 };
+  const en = await quiet(() => recommend({ ...base, lang: 'en' }, { fetchImpl: offlineFetch }));
+  const es = await quiet(() => recommend({ ...base, lang: 'es' }, { fetchImpl: offlineFetch }));
+  assert.equal(es.lang, 'es');
+  assert.deepEqual(es.rotations.map((r) => r.scores), en.rotations.map((r) => r.scores));
+  assert.deepEqual(es.indicators, en.indicators);
+  assert.equal(es.rotations[0].crops[0].name, 'Maíz');
+  assert.equal(es.rotations[0].crops[0].id, 'maize');
+  assert.match(es.disclaimer, /no reemplaza/);
+  assert.match(es.rotations[0].evidence.income.source, /dato preliminar/);
+  assert.notEqual(es.rotations[0].benefits.join(), en.rotations[0].benefits.join());
+});

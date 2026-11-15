@@ -1,4 +1,5 @@
 import { PRIORITIES } from '../scoring/weights.js';
+import { LANGUAGES } from '../explain/templates.js';
 
 export const RAIN_DELTA_RANGE = [-0.9, 1];
 export const HEAT_DELTA_RANGE = [-5, 5];
@@ -57,8 +58,8 @@ export function nearestZone(point, zones) {
 }
 
 /**
- * A map point { lat, lon } inside El Salvador becomes a custom zone. Coordinates are rounded to
- * 2 decimals (~1 km), far below the ~50 km NASA POWER grid.
+ * A map point { lat, lon } inside El Salvador becomes a custom zone. Coordinates are kept as sent:
+ * rounding could move a point near a cell edge into the neighbouring NASA POWER cell.
  */
 function pointZone(lat, lon, zones) {
   const { minLat, maxLat, minLon, maxLon } = EL_SALVADOR_BOUNDS;
@@ -66,7 +67,7 @@ function pointZone(lat, lon, zones) {
   if (!valid || lat < minLat || lat > maxLat || lon < minLon || lon > maxLon) {
     throw new ValidationError(`lat/lon must be numbers inside El Salvador (lat ${minLat}..${maxLat}, lon ${minLon}..${maxLon}).`);
   }
-  const point = { lat: Math.round(lat * 100) / 100, lon: Math.round(lon * 100) / 100 };
+  const point = { lat, lon };
   const nearest = nearestZone(point, zones);
   return { id: 'custom', name: 'Selected location', ...point, fallbackZone: { id: nearest.id, name: nearest.name } };
 }
@@ -86,11 +87,14 @@ export function validateRecommendBody(rawBody, { zones, crops }) {
   const body = parseBody(rawBody);
   const zone = resolveZone(body, zones);
   if (!PRIORITIES.includes(body.priority)) throw new ValidationError(`priority must be one of: ${PRIORITIES.join(', ')}.`);
+  const lang = body.lang ?? 'en';
+  if (!LANGUAGES.includes(lang)) throw new ValidationError(`lang must be one of: ${LANGUAGES.join(', ')}.`);
   return {
     zone,
     currentCrops: cropIds(body.currentCrop, crops),
     priority: body.priority,
     rainDelta: optionalNumber(body.rainDelta, 'rainDelta', RAIN_DELTA_RANGE),
     heatDelta: optionalNumber(body.heatDelta, 'heatDelta', HEAT_DELTA_RANGE),
+    lang,
   };
 }
