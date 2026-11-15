@@ -13,10 +13,14 @@ export default function FarmPage() {
   return (
     <>
       <StepIndicator current={1} />
-      <h1 className="mb-1 text-xl font-semibold">{t('farm.title')}</h1>
-      <p className="mb-4 text-sm text-muted">{location.label ?? `${location.lat.toFixed(3)}, ${location.lon.toFixed(3)}`}</p>
-      <FarmForm crops={currentCrops} onCropsChange={setCurrentCrops} priority={priority} onPriorityChange={setPriority} />
-      <div className="mt-4 flex justify-between">
+      <div className="mb-3 shrink-0">
+        <h1 className="text-xl font-semibold">{t('farm.title')}</h1>
+        <p className="text-sm text-muted">{location.label ?? `${location.lat.toFixed(3)}, ${location.lon.toFixed(3)}`}</p>
+      </div>
+      <div className="-mx-1 min-h-0 flex-1 overflow-y-auto px-1 pb-1">
+        <FarmForm crops={currentCrops} onCropsChange={setCurrentCrops} priority={priority} onPriorityChange={setPriority} />
+      </div>
+      <div className="mt-3 flex shrink-0 justify-between gap-3">
         <Button variant="secondary" onClick={() => navigate('/zone')}>
           {t('farm.back')}
         </Button>
