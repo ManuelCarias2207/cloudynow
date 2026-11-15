@@ -58,6 +58,8 @@ export async function recommend(input, options = {}) {
     weights,
     scenario: { rainDelta: input.rainDelta, heatDelta: input.heatDelta },
     indicators,
+    monthly,
+    hasSoilMoisture: climate.hasSoilMoisture,
     rotations,
     similar: isSimilar(rotations.map((rotation) => rotation.scores.total)),
     confidenceNote: confidenceNoteFor(confidenceLevel(indicators), indicators),
