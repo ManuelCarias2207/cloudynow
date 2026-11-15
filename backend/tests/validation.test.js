@@ -46,3 +46,15 @@ test('rejects map points outside El Salvador or without numbers', async () => {
     assert.throws(() => validateRecommendBody({ ...point, currentCrop: 'maize', priority: 'water' }, ctx), /inside El Salvador/);
   }
 });
+
+test('rejects bodies that are not JSON objects with 400', async () => {
+  const ctx = await context();
+  for (const body of ['null', '42', '"text"', '[]', [], null]) {
+    if (body === null) {
+      // A missing body is treated as {} and then fails on the missing zone.
+      assert.throws(() => validateRecommendBody(body, ctx), ValidationError);
+      continue;
+    }
+    assert.throws(() => validateRecommendBody(body, ctx), (error) => error instanceof ValidationError && /JSON object/.test(error.message));
+  }
+});

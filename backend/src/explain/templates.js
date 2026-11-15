@@ -20,6 +20,14 @@ function monthList(months) {
   return months.length > 0 ? months.map(monthLabel).join(', ') : 'no clear months';
 }
 
+/** Describes only the real advantages of a drought swap (less water and/or more drought tolerance). */
+function swapBenefit({ from, to }, indicators) {
+  const advantages = [];
+  if (LEVEL[to.waterDemand] < LEVEL[from.waterDemand]) advantages.push(`needs less water than ${from.name}`);
+  if (LEVEL[to.droughtTolerance] > LEVEL[from.droughtTolerance]) advantages.push(`tolerates dry spells better than ${from.name}`);
+  return `${to.name} ${advantages.join(' and ')} (dry spells last about ${indicators.longestDrySpellDays} days in the rainy season here).`;
+}
+
 /** Benefits of a rotation, each one tied to a trait or NASA number. */
 export function benefitsFor(rotation, scores, indicators) {
   const benefits = [];
@@ -29,8 +37,9 @@ export function benefitsFor(rotation, scores, indicators) {
   if (rotation.coversBareWindow) {
     benefits.push(`${rotation.added.name} keeps the soil covered in the bare-field months (${monthList(indicators.bareWindowMonths)}).`);
   }
-  if (rotation.swap) {
-    benefits.push(`${rotation.swap.to.name} needs less water than ${rotation.swap.from.name} and tolerates dry spells (about ${indicators.longestDrySpellDays} days in the rainy season here).`);
+  if (rotation.swap) benefits.push(swapBenefit(rotation.swap, indicators));
+  if (rotation.noSwap) {
+    benefits.push(`Your crops are already among the most drought-tolerant options, so no swap is suggested (dry spells here last about ${indicators.longestDrySpellDays} days in the rainy season).`);
   }
   if (scores.water >= 0.75) benefits.push(`Water needs fit the zone: about ${indicators.meanAnnualRainMm} mm of rain per year.`);
   const earners = rotation.crops.filter((crop) => crop.incomePotential === 'high');

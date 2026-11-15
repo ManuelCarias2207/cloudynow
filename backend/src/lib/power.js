@@ -81,8 +81,17 @@ function cleanValue(value, fillValue) {
   return value;
 }
 
+/** true for a real calendar date written as YYYYMMDD (POWER also uses keys like "ANN" in other endpoints). */
+function isValidDate(key) {
+  if (!/^\d{8}$/.test(key)) return false;
+  const [year, month, day] = [key.slice(0, 4), key.slice(4, 6), key.slice(6, 8)].map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+}
+
 /**
- * Turns the raw POWER response into daily records:
+ * Turns the raw POWER response into daily records (invalid date keys are ignored; a response
+ * with no valid date or no valid rainfall value throws PowerError so the caller uses the fallback):
  * [{ date: 'YYYYMMDD', year, month, tempC, rainMm, humidityPct, soilMoisture }].
  * Missing values (-999) become null so every calculation can skip them.
  */
@@ -92,7 +101,10 @@ export function parsePowerResponse(raw) {
     throw new PowerError('NASA POWER response has no daily parameter data.', 'invalid-response');
   }
   const fillValue = raw?.header?.fill_value ?? FILL_VALUE;
-  const dates = Object.keys(parameters.PRECTOTCORR).sort();
+  const dates = Object.keys(parameters.PRECTOTCORR).filter(isValidDate).sort();
+  if (dates.length === 0) {
+    throw new PowerError('NASA POWER response has no valid dates.', 'invalid-response');
+  }
   const days = dates.map((date) => {
     const day = { date, year: Number(date.slice(0, 4)), month: Number(date.slice(4, 6)) };
     for (const [parameter, field] of Object.entries(FIELD_BY_PARAMETER)) {
@@ -100,6 +112,9 @@ export function parsePowerResponse(raw) {
     }
     return day;
   });
+  if (!days.some((day) => day.rainMm !== null)) {
+    throw new PowerError('NASA POWER response has no valid rainfall values (all missing).', 'invalid-response');
+  }
   return {
     days,
     hasSoilMoisture: days.some((day) => day.soilMoisture !== null),
@@ -107,22 +122,72 @@ export function parsePowerResponse(raw) {
   };
 }
 
+/** Live POWER responses are kept this long per warm server instance (the data changes once a year). */
+export const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+/** Most map points kept in the cache; the oldest entry is dropped first. */
+export const CACHE_MAX_ENTRIES = 200;
+
+/** In-memory cache of parsed live data, keyed by the POWER URL (point + period). */
+export function createPowerCache({ ttlMs = CACHE_TTL_MS, maxEntries = CACHE_MAX_ENTRIES, now = Date.now } = {}) {
+  const entries = new Map();
+  return {
+    get(key) {
+      const entry = entries.get(key);
+      if (!entry) return undefined;
+      if (now() - entry.storedAt > ttlMs) {
+        entries.delete(key);
+        return undefined;
+      }
+      return entry.value;
+    },
+    set(key, value) {
+      entries.delete(key);
+      entries.set(key, { value, storedAt: now() });
+      if (entries.size > maxEntries) entries.delete(entries.keys().next().value);
+    },
+    get size() {
+      return entries.size;
+    },
+  };
+}
+
+const sharedCache = createPowerCache();
+
+/** Error raised when neither NASA POWER nor stored data can provide climate data (HTTP 503). */
+export class ClimateUnavailableError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'ClimateUnavailableError';
+    this.status = 503;
+  }
+}
+
 /**
- * Daily climate for a zone: live POWER data, or the stored fallback when POWER fails.
- * Returns { days, hasSoilMoisture, period, fallback }.
- */
-/**
- * Live daily data for a zone; on any failure, the stored fallback of the zone (or, for a custom
- * map point, of its nearest pilot zone) with fallback: true.
+ * Daily climate for a zone: { days, hasSoilMoisture, period, fallback, fallbackZone? }.
+ * Live POWER data is cached (only successful responses). On any live failure it uses the stored
+ * fallback of the zone (or, for a custom map point, of its nearest pilot zone) with fallback: true.
+ * When that also fails it throws ClimateUnavailableError.
+ * An injected `fetchImpl` (tests) skips the shared cache unless a `cache` is passed explicitly.
  */
 export async function getZoneDaily(zone, options = {}) {
+  const { cache = options.fetchImpl ? null : sharedCache, ...fetchOptions } = options;
+  const key = buildPowerUrl(zone, fetchOptions.period);
+  const cached = cache?.get(key);
+  if (cached) return cached;
   try {
-    const raw = await fetchPowerRaw(zone, options);
-    return { ...parsePowerResponse(raw), fallback: false };
+    const raw = await fetchPowerRaw(zone, fetchOptions);
+    const live = { ...parsePowerResponse(raw), fallback: false };
+    cache?.set(key, live);
+    return live;
   } catch (error) {
     const fallbackZone = zone.fallbackZone ?? { id: zone.id, name: zone.name };
     console.warn(`[power] ${zone.id}: ${error.message} Using stored fallback data of ${fallbackZone.id}.`);
-    const raw = await loadFallback(fallbackZone.id);
-    return { ...parsePowerResponse(raw), fallback: true, fallbackZone };
+    try {
+      const raw = await loadFallback(fallbackZone.id);
+      return { ...parsePowerResponse(raw), fallback: true, fallbackZone };
+    } catch (fallbackError) {
+      console.error(`[power] ${zone.id}: stored fallback ${fallbackZone.id} failed: ${fallbackError.message}`);
+      throw new ClimateUnavailableError('Climate data is unavailable right now: NASA POWER did not respond and no stored data exists for this location. Try again later.');
+    }
   }
 }

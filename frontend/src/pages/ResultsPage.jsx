@@ -46,7 +46,13 @@ export default function ResultsPage() {
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2">
             {state.data.similar && <Badge tone="warn">Top options are very similar</Badge>}
-            {state.data.fallback && <Badge tone="warn">Using stored data</Badge>}
+            {state.data.fallback && (
+              <Badge tone="warn">
+                {state.data.fallbackZone?.name
+                  ? `NASA offline: using stored data from ${state.data.fallbackZone.name}`
+                  : 'NASA offline: using stored data'}
+              </Badge>
+            )}
             <Badge>
               {state.data.indicators.meanAnnualRainMm} mm rain/year · dry spell {state.data.indicators.longestDrySpellDays} days
             </Badge>

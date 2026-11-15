@@ -34,7 +34,7 @@ export function mean(values) {
 function stdDev(values) {
   const avg = mean(values);
   if (avg === null) return null;
-  const valid = values.filter((value) => value !== null);
+  const valid = values.filter((value) => value !== null && value !== undefined);
   return Math.sqrt(valid.reduce((sum, value) => sum + (value - avg) ** 2, 0) / valid.length);
 }
 
@@ -62,21 +62,27 @@ function groupBy(items, keyOf) {
   return groups;
 }
 
-/** Sum of the non-null values of `field` (0 when all are missing). */
-function sumField(days, field) {
-  return days.reduce((sum, day) => sum + (day[field] ?? 0), 0);
+/**
+ * Total of `field` over a period, filling missing days with the period's mean:
+ * total = sum(valid values) * days / validDays. Null when every day is missing, so a gap in the
+ * data is never read as a day without rain.
+ */
+function totalField(days, field) {
+  const valid = days.map((day) => day[field]).filter((value) => value !== null && value !== undefined);
+  if (valid.length === 0) return null;
+  return (valid.reduce((sum, value) => sum + value, 0) * days.length) / valid.length;
 }
 
 /**
  * Monthly climatology (12 entries, one per calendar month):
- * - rainMm: mean over years of the monthly rainfall total (sum of daily mm).
+ * - rainMm: mean over years of the monthly rainfall total (sum of daily mm; missing days filled with that month's mean).
  * - tempC, humidityPct, soilMoisture: mean of all valid daily values in that month.
  */
 export function monthlyClimatology(days) {
   const byMonth = groupBy(days, (day) => day.month);
   return MONTH_LABELS.map((label, index) => {
     const monthDays = byMonth.get(index + 1) ?? [];
-    const totalsPerYear = [...groupBy(monthDays, (day) => day.year).values()].map((yearDays) => sumField(yearDays, 'rainMm'));
+    const totalsPerYear = [...groupBy(monthDays, (day) => day.year).values()].map((yearDays) => totalField(yearDays, 'rainMm'));
     return {
       month: index + 1,
       label,
@@ -89,12 +95,31 @@ export function monthlyClimatology(days) {
 }
 
 /**
+ * Sum of the monthly rain totals of one year. Null when the year is incomplete:
+ * - a month of `expectedMonths` has no record at all for this year (the dates are absent), or
+ * - a month has records but every rain value is null.
+ * `expectedMonths` are the calendar months seen in any year of the dataset, so a dataset that
+ * only covers some months (e.g. tests) is still compared like with like.
+ */
+function yearlyRainTotal(yearDays, expectedMonths) {
+  const byMonth = groupBy(yearDays, (day) => day.month);
+  if ([...expectedMonths].some((month) => !byMonth.has(month))) return null;
+  const monthTotals = [...byMonth.values()].map((monthDays) => totalField(monthDays, 'rainMm'));
+  if (monthTotals.some((total) => total === null)) return null;
+  return monthTotals.reduce((sum, total) => sum + total, 0);
+}
+
+/**
  * Rainfall variability between years:
  * meanAnnualMm = mean of the yearly rainfall totals.
  * cv (coefficient of variation) = standard deviation / mean of those totals.
+ * A yearly total is the sum of its monthly totals (missing days filled within each month, so a
+ * gap in the rainy season is not filled with dry-season rain); years with an absent or fully
+ * null month are skipped.
  */
 export function rainVariability(days) {
-  const totals = [...groupBy(days, (day) => day.year).values()].map((yearDays) => sumField(yearDays, 'rainMm'));
+  const expectedMonths = new Set(days.map((day) => day.month));
+  const totals = [...groupBy(days, (day) => day.year).values()].map((yearDays) => yearlyRainTotal(yearDays, expectedMonths));
   const avg = mean(totals);
   return { meanAnnualMm: avg, cv: avg ? stdDev(totals) / avg : null };
 }

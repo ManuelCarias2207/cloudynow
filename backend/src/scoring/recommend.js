@@ -62,6 +62,7 @@ export async function recommend(input, options = {}) {
     similar: isSimilar(rotations.map((rotation) => rotation.scores.total)),
     confidenceNote: confidenceNoteFor(confidenceLevel(indicators), indicators),
     fallback: climate.fallback,
+    fallbackZone: climate.fallback ? climate.fallbackZone : null,
     disclaimer: DISCLAIMER,
     dataSource: dataSource(climate),
   };

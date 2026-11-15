@@ -72,3 +72,24 @@ test('less rain in the scenario lowers rainfall and lengthens dry spells', async
   assert.ok(drier.longestDrySpellDays >= base.longestDrySpellDays);
   assert.ok(drier.extremeHeatDaysPerYear > base.extremeHeatDaysPerYear);
 });
+
+test('missing rain days are not read as dry days in monthly and yearly totals', () => {
+  // January 2020: two valid days of 10 mm and one missing day -> 30 mm, not 20 mm.
+  const days = [day(2020, 1, 10), day(2020, 1, 10), day(2020, 1, null), day(2021, 1, 30)];
+  assert.equal(monthlyClimatology(days)[0].rainMm, 30);
+  assert.equal(rainVariability(days).meanAnnualMm, 30);
+  assert.equal(monthlyClimatology([day(2020, 1, null)])[0].rainMm, null);
+  assert.equal(rainVariability([day(2020, 1, null), day(2021, 1, 50)]).meanAnnualMm, 50);
+});
+
+test('a year with a whole month absent is left out of the annual totals', () => {
+  // 2020 and 2022 have Jan + Feb; 2021 has no February records at all.
+  const days = [
+    day(2020, 1, 100), day(2020, 2, 50),
+    day(2021, 1, 100),
+    day(2022, 1, 120), day(2022, 2, 30),
+  ];
+  assert.equal(rainVariability(days).meanAnnualMm, 150);
+  // A month with records whose values are all null is also left out.
+  assert.equal(rainVariability([...days, day(2023, 1, null), day(2023, 2, 40)]).meanAnnualMm, 150);
+});

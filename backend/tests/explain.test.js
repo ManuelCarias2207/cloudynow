@@ -34,3 +34,15 @@ test('confidence note mentions the rainfall CV', () => {
   assert.match(confidenceNoteFor('low', { rainCV: 0.25 }), /CV 0\.25.*lower confidence/);
   assert.match(confidenceNoteFor('normal', { rainCV: 0.1 }), /CV 0\.1/);
 });
+
+test('swap and no-swap benefits only claim real advantages', async () => {
+  const indicators = await storedIndicators('usulutan');
+  const crops = await loadCrops();
+  const [, , squashSwap] = buildRotations(['squash'], crops);
+  const text = benefitsFor(squashSwap, lowScores, indicators).find((line) => line.startsWith(squashSwap.swap.to.name));
+  assert.match(text, /needs less water than Squash/);
+  assert.match(text, /tolerates dry spells better than Squash/);
+  const [, , noSwap] = buildRotations(['sorghum', 'sesame', 'cowpea', 'jack-bean'], crops);
+  assert.ok(benefitsFor(noSwap, lowScores, indicators).some((line) => line.includes('no swap is suggested')));
+  assert.ok(!risksFor(noSwap, lowScores, indicators).some((line) => line.includes('new to this rotation')));
+});

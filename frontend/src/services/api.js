@@ -3,8 +3,12 @@ const API_URL = import.meta.env.VITE_API_URL ?? '';
 /** Calls the backend and returns JSON, throwing the API error message on failure. */
 async function request(path, options) {
   const response = await fetch(`${API_URL}${path}`, options);
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error ?? `Request failed (${response.status}).`);
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(data?.error ?? `Request failed (${response.status}).`);
+  // A 200 that is not JSON (e.g. index.html from a wrong API URL) must not reach the pages as data.
+  if (data === null || typeof data !== 'object') {
+    throw new Error('The server did not return valid data. Check that the API is running and VITE_API_URL points to it.');
+  }
   return data;
 }
 

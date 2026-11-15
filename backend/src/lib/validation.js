@@ -15,14 +15,20 @@ export class ValidationError extends Error {
   }
 }
 
-/** Parses the body when it arrives as a string. */
+/** Parses the body when it arrives as a string; it must be a JSON object. */
 function parseBody(body) {
-  if (typeof body !== 'string') return body ?? {};
-  try {
-    return JSON.parse(body);
-  } catch {
-    throw new ValidationError('Body must be valid JSON.');
+  let parsed = body ?? {};
+  if (typeof body === 'string') {
+    try {
+      parsed = JSON.parse(body);
+    } catch {
+      throw new ValidationError('Body must be valid JSON.');
+    }
   }
+  if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new ValidationError('Body must be a JSON object.');
+  }
+  return parsed;
 }
 
 /** Optional number inside [min, max]; defaults to 0. */
