@@ -1,7 +1,10 @@
+import { useTranslation } from 'react-i18next';
+
 export default function Footer() {
+  const { t } = useTranslation();
   return (
     <footer className="mx-auto max-w-5xl px-4 py-6 text-xs text-zinc-500">
-      Supports, does not replace, the judgment of farmers and local technicians. Map data © OpenStreetMap contributors.
+      {t('footer')}
     </footer>
   );
 }

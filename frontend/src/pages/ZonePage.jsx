@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import StepIndicator from '../components/layout/StepIndicator.jsx';
 import ZoneMap from '../components/zone/ZoneMap.jsx';
 import ZoneCard from '../components/zone/ZoneCard.jsx';
@@ -11,6 +12,7 @@ import { isInsideBounds } from '../lib/utils.js';
 
 export default function ZonePage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { location, setLocation } = useFlow();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -18,7 +20,7 @@ export default function ZonePage() {
 
   const pick = async (point) => {
     if (!isInsideBounds(point, EL_SALVADOR_BOUNDS)) {
-      setMessage('Please choose a point inside El Salvador.');
+      setMessage(t('zone.outside'));
       return;
     }
     setMessage('');
@@ -26,7 +28,7 @@ export default function ZonePage() {
     setLocation({ ...point, label: point.label ?? null });
     if (!point.label) {
       const label = await placeName(point);
-      setLocation((current) => (current?.lat === point.lat && current?.lon === point.lon ? { ...current, label: label ?? 'Unnamed place' } : current));
+      setLocation((current) => (current?.lat === point.lat && current?.lon === point.lon ? { ...current, label: label ?? t('zone.unnamed') } : current));
     }
   };
 
@@ -36,25 +38,25 @@ export default function ZonePage() {
     try {
       const places = await searchPlaces(query.trim());
       setResults(places);
-      setMessage(places.length === 0 ? 'No places found in El Salvador.' : '');
-    } catch (error) {
-      setMessage(error.message);
+      setMessage(places.length === 0 ? t('zone.noPlaces') : '');
+    } catch {
+      setMessage(t('zone.searchUnavailable'));
     }
   };
 
   return (
     <>
       <StepIndicator current={0} />
-      <h1 className="mb-4 text-xl font-semibold">Where is your farm?</h1>
+      <h1 className="mb-4 text-xl font-semibold">{t('zone.title')}</h1>
       <form onSubmit={search} className="relative mb-3 flex gap-2">
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search a town or place, e.g. Chalatenango"
+          placeholder={t('zone.searchPlaceholder')}
           className="w-full rounded-xl bg-white px-4 py-2.5 text-sm ring-1 ring-zinc-200 outline-none focus:ring-zinc-900"
         />
         <Button type="submit" variant="secondary">
-          Search
+          {t('zone.search')}
         </Button>
         {results.length > 0 && (
           <ul className="absolute top-full z-10 mt-1 w-full overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-zinc-200">
@@ -74,7 +76,7 @@ export default function ZonePage() {
         <div className="flex flex-col gap-4">
           <ZoneCard location={location} />
           <Button disabled={!location} onClick={() => navigate('/farm')}>
-            Continue
+            {t('zone.continue')}
           </Button>
         </div>
       </div>

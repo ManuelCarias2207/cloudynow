@@ -8,12 +8,12 @@ async function request(path, options) {
   return data;
 }
 
-/** POST /api/recommend with a map point. */
-export function recommend({ lat, lon, currentCrops, priority }) {
+/** POST /api/recommend with a map point. `lang` ('en' | 'es') sets the language of the texts. */
+export function recommend({ lat, lon, currentCrops, priority, lang }) {
   return request('/api/recommend', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ lat, lon, currentCrop: currentCrops, priority }),
+    body: JSON.stringify({ lat, lon, currentCrop: currentCrops, priority, lang }),
   });
 }
 

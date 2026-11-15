@@ -1,4 +1,5 @@
 import { PRIORITIES } from '../scoring/weights.js';
+import { LANGUAGES } from '../explain/templates.js';
 
 export const RAIN_DELTA_RANGE = [-0.9, 1];
 export const HEAT_DELTA_RANGE = [-5, 5];
@@ -86,11 +87,14 @@ export function validateRecommendBody(rawBody, { zones, crops }) {
   const body = parseBody(rawBody);
   const zone = resolveZone(body, zones);
   if (!PRIORITIES.includes(body.priority)) throw new ValidationError(`priority must be one of: ${PRIORITIES.join(', ')}.`);
+  const lang = body.lang ?? 'en';
+  if (!LANGUAGES.includes(lang)) throw new ValidationError(`lang must be one of: ${LANGUAGES.join(', ')}.`);
   return {
     zone,
     currentCrops: cropIds(body.currentCrop, crops),
     priority: body.priority,
     rainDelta: optionalNumber(body.rainDelta, 'rainDelta', RAIN_DELTA_RANGE),
     heatDelta: optionalNumber(body.heatDelta, 'heatDelta', HEAT_DELTA_RANGE),
+    lang,
   };
 }

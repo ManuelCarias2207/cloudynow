@@ -26,6 +26,7 @@ test('rejects invalid input with clear 400 errors', async () => {
     [{ zone: 'sonsonate', currentCrop: 'maize', priority: 'yield' }, /priority/],
     [{ zone: 'sonsonate', currentCrop: 'maize', priority: 'water', rainDelta: -2 }, /rainDelta/],
     [{ zone: 'sonsonate', currentCrop: 'maize', priority: 'water', heatDelta: '2' }, /heatDelta/],
+    [{ zone: 'sonsonate', currentCrop: 'maize', priority: 'water', lang: 'fr' }, /lang/],
     ['{not json', /valid JSON/],
   ];
   for (const [body, message] of bad) {

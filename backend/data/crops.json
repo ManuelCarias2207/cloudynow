@@ -1,12 +1,12 @@
 [
-  { "id": "maize", "name": "Maize", "waterDemand": "high", "droughtTolerance": "low", "fixesNitrogen": false, "soilCover": "medium", "cycleMonths": 4, "incomePotential": "medium", "needsValidation": true },
-  { "id": "bean", "name": "Common bean", "waterDemand": "medium", "droughtTolerance": "low", "fixesNitrogen": true, "soilCover": "low", "cycleMonths": 3, "incomePotential": "high", "needsValidation": true },
-  { "id": "sorghum", "name": "Sorghum", "waterDemand": "low", "droughtTolerance": "high", "fixesNitrogen": false, "soilCover": "medium", "cycleMonths": 4, "incomePotential": "low", "needsValidation": true },
-  { "id": "sesame", "name": "Sesame", "waterDemand": "low", "droughtTolerance": "high", "fixesNitrogen": false, "soilCover": "low", "cycleMonths": 3, "incomePotential": "high", "needsValidation": true },
-  { "id": "cowpea", "name": "Cowpea", "waterDemand": "low", "droughtTolerance": "high", "fixesNitrogen": true, "soilCover": "medium", "cycleMonths": 3, "incomePotential": "medium", "needsValidation": true },
-  { "id": "jack-bean", "name": "Jack bean (canavalia)", "waterDemand": "low", "droughtTolerance": "high", "fixesNitrogen": true, "soilCover": "high", "cycleMonths": 5, "incomePotential": "low", "needsValidation": true },
-  { "id": "squash", "name": "Squash (ayote)", "waterDemand": "medium", "droughtTolerance": "medium", "fixesNitrogen": false, "soilCover": "high", "cycleMonths": 4, "incomePotential": "medium", "needsValidation": true },
-  { "id": "cassava", "name": "Cassava (yuca)", "waterDemand": "low", "droughtTolerance": "high", "fixesNitrogen": false, "soilCover": "medium", "cycleMonths": 10, "incomePotential": "medium", "needsValidation": true }
+  { "id": "maize", "name": "Maize", "nameEs": "Maíz", "waterDemand": "high", "droughtTolerance": "low", "fixesNitrogen": false, "soilCover": "medium", "cycleMonths": 4, "incomePotential": "medium", "needsValidation": true },
+  { "id": "bean", "name": "Common bean", "nameEs": "Frijol", "waterDemand": "medium", "droughtTolerance": "low", "fixesNitrogen": true, "soilCover": "low", "cycleMonths": 3, "incomePotential": "high", "needsValidation": true },
+  { "id": "sorghum", "name": "Sorghum", "nameEs": "Maicillo (sorgo)", "waterDemand": "low", "droughtTolerance": "high", "fixesNitrogen": false, "soilCover": "medium", "cycleMonths": 4, "incomePotential": "low", "needsValidation": true },
+  { "id": "sesame", "name": "Sesame", "nameEs": "Ajonjolí", "waterDemand": "low", "droughtTolerance": "high", "fixesNitrogen": false, "soilCover": "low", "cycleMonths": 3, "incomePotential": "high", "needsValidation": true },
+  { "id": "cowpea", "name": "Cowpea", "nameEs": "Frijol caupí", "waterDemand": "low", "droughtTolerance": "high", "fixesNitrogen": true, "soilCover": "medium", "cycleMonths": 3, "incomePotential": "medium", "needsValidation": true },
+  { "id": "jack-bean", "name": "Jack bean (canavalia)", "nameEs": "Canavalia", "waterDemand": "low", "droughtTolerance": "high", "fixesNitrogen": true, "soilCover": "high", "cycleMonths": 5, "incomePotential": "low", "needsValidation": true },
+  { "id": "squash", "name": "Squash (ayote)", "nameEs": "Ayote", "waterDemand": "medium", "droughtTolerance": "medium", "fixesNitrogen": false, "soilCover": "high", "cycleMonths": 4, "incomePotential": "medium", "needsValidation": true },
+  { "id": "cassava", "name": "Cassava (yuca)", "nameEs": "Yuca", "waterDemand": "low", "droughtTolerance": "high", "fixesNitrogen": false, "soilCover": "medium", "cycleMonths": 10, "incomePotential": "medium", "needsValidation": true }
 ]
 
 
