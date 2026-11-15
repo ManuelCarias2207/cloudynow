@@ -13,3 +13,7 @@ export const EL_SALVADOR_BOUNDS = { minLat: 13.1, maxLat: 14.5, minLon: -90.2, m
 
 export const MAP_STYLE = 'https://tiles.openfreemap.org/styles/positron';
 export const MAP_CENTER = [-88.9, 13.75];
+
+// Optional satellite layer, only requested when the user turns it on.
+export const SATELLITE_TILES = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+export const SATELLITE_ATTRIBUTION = 'Imagery © Esri, Maxar, Earthstar Geographics';

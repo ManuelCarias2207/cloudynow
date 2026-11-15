@@ -6,13 +6,14 @@ import { cn } from '../../lib/utils.js';
 const STEP_PATHS = ['/zone', '/farm', '/results'];
 
 /** Completed steps link back; the current one is marked with aria-current. */
-export default function StepIndicator({ current }) {
+/** `compact` hides the step pills on phones and keeps only the "Step 1 of 3" text. */
+export default function StepIndicator({ current, compact = false }) {
   const { t } = useTranslation();
   const steps = t('steps', { returnObjects: true });
   return (
     <nav aria-label={t('stepper.label')} className="mb-6">
       <p className="mb-2 text-xs font-medium text-muted">{t('stepper.progress', { current: current + 1, total: steps.length })}</p>
-      <ol className="flex flex-wrap gap-2 text-sm">
+      <ol className={cn('flex-wrap gap-2 text-sm', compact ? 'hidden md:flex' : 'flex')}>
         {steps.map((step, index) => {
           const done = index < current;
           const active = index === current;

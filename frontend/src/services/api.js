@@ -19,13 +19,27 @@ export function recommend({ lat, lon, currentCrops, priority, lang }) {
 
 const NOMINATIM = 'https://nominatim.openstreetmap.org';
 
-/** Place search inside El Salvador (OpenStreetMap Nominatim). Returns [{ lat, lon, label }]. */
-export async function searchPlaces(query) {
-  const params = new URLSearchParams({ q: query, format: 'jsonv2', countrycodes: 'sv', limit: '5' });
-  const response = await fetch(`${NOMINATIM}/search?${params}`);
+const PHOTON = 'https://photon.komoot.io/api/';
+const SV_BBOX = '-90.2,13.1,-87.6,14.5';
+
+function photonLabel({ name, city, county, state }) {
+  return [...new Set([name, city ?? county, state].filter(Boolean))].join(', ');
+}
+
+/**
+ * Place search inside El Salvador for the autocomplete (Photon, OpenStreetMap data).
+ * Returns [{ lat, lon, label }]. Pass an AbortSignal to cancel a stale search.
+ */
+export async function searchPlaces(query, { signal, lang } = {}) {
+  const params = new URLSearchParams({ q: query, limit: '6', bbox: SV_BBOX });
+  if (lang === 'en') params.set('lang', 'en');
+  const response = await fetch(`${PHOTON}?${params}`, { signal });
   if (!response.ok) throw new Error('Place search is not available right now.');
-  const places = await response.json();
-  return places.map((place) => ({ lat: Number(place.lat), lon: Number(place.lon), label: place.display_name }));
+  const { features = [] } = await response.json();
+  const places = features
+    .filter((feature) => feature.properties.countrycode === 'SV')
+    .map((feature) => ({ lat: feature.geometry.coordinates[1], lon: feature.geometry.coordinates[0], label: photonLabel(feature.properties) }));
+  return places.filter((place, index) => places.findIndex((other) => other.label === place.label) === index);
 }
 
 /** Short place name for a point, or null. */

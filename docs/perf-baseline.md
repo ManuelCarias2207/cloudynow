@@ -87,3 +87,17 @@ npx lighthouse http://localhost:4173/zone --form-factor=mobile --throttling-meth
 | Lighthouse Accesibilidad `/zone` | — | 100 | — |
 
 El TBT que queda viene de inicializar MapLibre en `/zone`, por eso Performance sigue por debajo de 90.
+
+## Después del mapa a pantalla completa y la búsqueda con autocompletado
+
+| Medida | Baseline | Identidad visual | Ahora |
+|---|---|---|---|
+| JS inicial (gzip) | 391.6 KB | 107.0 KB | 109.8 KB |
+| CSS inicial (gzip) | 13.6 KB | 4.1 KB | 4.6 KB |
+| Chunk diferido del mapa (gzip) | — | 284.0 + 10.0 KB | 287.4 + 10.1 KB |
+| Lighthouse `/zone`: Performance / LCP / CLS / TBT | 60 / 3.3 s / 0.024 / 1,520 ms | 74 / 1.7 s / 0.024 / 1,220 ms | 72 / 1.7 s / 0 / 1,750 ms |
+| Peso total de `/zone` | 1,194 KB | 849 KB | 895 KB |
+
+- Mediana de 3 corridas. El mapa ocupa ahora toda la pantalla, así que pide más tiles y el TBT sube (MapLibre usa el hilo principal al iniciar).
+- Arrastre y zoom con CPU 4x y WebGL por software: unos 30 fps (p95 50 ms por cuadro). Durante el gesto se pidieron 9 tiles.
+- Búsqueda: escribir "chalat" letra por letra hace 1 sola petición (debounce de 300 ms, mínimo 3 letras, AbortController y caché).

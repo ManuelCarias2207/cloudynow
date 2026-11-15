@@ -19,3 +19,17 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+.map-pin svg {
+  display: block;
+  transform-origin: 50% 100%;
+  animation: pin-drop 180ms var(--ease-out);
+  filter: drop-shadow(0 2px 2px rgb(27 30 25 / 0.35));
+}
+
+@keyframes pin-drop {
+  from {
+    transform: translateY(-14px) scale(0.8);
+    opacity: 0;
+  }
+}
