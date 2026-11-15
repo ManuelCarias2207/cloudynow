@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import StepIndicator from '../components/layout/StepIndicator.jsx';
+import ClimateCharts from '../components/charts/ClimateCharts.jsx';
 import RotationComparison from '../components/results/RotationComparison.jsx';
 import SupportNotice from '../components/results/SupportNotice.jsx';
 import Badge from '../components/ui/Badge.jsx';
@@ -53,6 +54,12 @@ export default function ResultsPage() {
           </div>
           <p className="text-sm text-zinc-600">{state.data.confidenceNote}</p>
           <RotationComparison rotations={state.data.rotations} weights={state.data.weights} />
+          <ClimateCharts
+            monthly={state.data.monthly}
+            indicators={state.data.indicators}
+            hasSoilMoisture={state.data.hasSoilMoisture}
+            dataSource={state.data.dataSource}
+          />
           <SupportNotice text={state.data.disclaimer} />
         </div>
       )}

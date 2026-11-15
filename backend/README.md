@@ -119,6 +119,8 @@ Response (abbreviated):
   "weights": { "water": 0.4, "soil": 0.15, "erosion": 0.15, "income": 0.1, "risk": 0.2 },
   "scenario": { "rainDelta": -0.2, "heatDelta": 2 },
   "indicators": { "meanAnnualRainMm": 1247, "rainCV": 0.225, ... },
+  "monthly": [{ "month": 1, "label": "Jan", "rainMm": 9.8, "tempC": 27.1, "humidityPct": 63.2, "soilMoisture": 0.48 }, ...],
+  "hasSoilMoisture": true,
   "rotations": [
     {
       "id": "A",

@@ -22,6 +22,7 @@ test('recommend returns exactly three complete rotations from stored data', asyn
   const result = await quiet(() => recommend({ zone, currentCrops: ['maize', 'bean'], priority: 'water', rainDelta: 0, heatDelta: 0 }, { fetchImpl: offlineFetch }));
   assert.equal(result.rotations.length, 3);
   assert.deepEqual(result.rotations.map((rotation) => rotation.id), ['A', 'B', 'C']);
+  assert.equal(result.monthly.length, 12);
   for (const rotation of result.rotations) {
     for (const key of ['name', 'crops', 'scores', 'evidence', 'benefits', 'risks', 'informationGaps']) assert.ok(rotation[key], key);
     for (const value of Object.values(rotation.scores)) assert.ok(value >= 0 && value <= 1);
