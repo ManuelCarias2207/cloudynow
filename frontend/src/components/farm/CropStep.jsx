@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { CROPS, MAX_CROPS } from '../../lib/constants.js';
 import { cn } from '../../lib/utils.js';
+import { CheckIcon } from '../ui/icons.jsx';
 
 /** Multi-select of the crops in the current rotation (in planting order). */
 export default function CropStep({ value, onChange }) {
@@ -12,7 +13,7 @@ export default function CropStep({ value, onChange }) {
   return (
     <section>
       <h2 className="font-medium">{t('farm.cropsTitle')}</h2>
-      <p className="mb-3 text-sm text-zinc-500">{t('farm.cropsHint', { max: MAX_CROPS })}</p>
+      <p className="mb-3 text-sm text-muted">{t('farm.cropsHint', { max: MAX_CROPS })}</p>
       <div className="flex flex-wrap gap-2">
         {CROPS.map((id) => {
           const active = value.includes(id);
@@ -20,12 +21,14 @@ export default function CropStep({ value, onChange }) {
             <button
               key={id}
               type="button"
+              aria-pressed={active}
               onClick={() => toggle(id)}
               className={cn(
-                'rounded-full px-3 py-1.5 text-sm ring-1 transition',
-                active ? 'bg-zinc-900 text-white ring-zinc-900' : 'bg-white ring-zinc-200 hover:bg-zinc-100',
+                'inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full px-4 py-1.5 text-sm ring-1',
+                active ? 'bg-brand text-white ring-brand' : 'bg-surface ring-line-strong hover:bg-surface-2',
               )}
             >
+              {active && <CheckIcon className="h-3.5 w-3.5" />}
               {t(`crops.${id}`)}
             </button>
           );

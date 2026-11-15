@@ -7,11 +7,11 @@ export const LANGUAGES = ['en', 'es'];
 const STORAGE_KEY = 'lang';
 
 const saved = localStorage.getItem(STORAGE_KEY);
-const browser = navigator.language?.slice(0, 2);
+const browser = (navigator.languages ?? [navigator.language]).map((tag) => tag?.slice(0, 2)).find((code) => LANGUAGES.includes(code));
 
 i18n.use(initReactI18next).init({
   resources: { en: { translation: en }, es: { translation: es } },
-  lng: LANGUAGES.includes(saved) ? saved : LANGUAGES.includes(browser) ? browser : 'en',
+  lng: LANGUAGES.includes(saved) ? saved : (browser ?? 'en'),
   fallbackLng: 'en',
   interpolation: { escapeValue: false },
 });

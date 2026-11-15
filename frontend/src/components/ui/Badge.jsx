@@ -1,9 +1,9 @@
 import { cn } from '../../lib/utils.js';
 
 const TONES = {
-  neutral: 'bg-zinc-100 text-zinc-700',
-  good: 'bg-lime-100 text-lime-800',
-  warn: 'bg-amber-100 text-amber-800',
+  neutral: 'bg-surface-2 text-ink',
+  good: 'bg-brand-soft text-brand',
+  warn: 'bg-maize-soft text-maize-ink',
 };
 
 export default function Badge({ tone = 'neutral', className, ...props }) {

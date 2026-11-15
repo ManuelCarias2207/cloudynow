@@ -1,7 +1,8 @@
 export default {
-  header: { tagline: 'NASA POWER climate data', switchLanguage: 'Ver en español' },
+  header: { tagline: 'NASA POWER climate data', language: 'Language' },
   footer: 'Supports, does not replace, the judgment of farmers and local technicians. Map data © OpenStreetMap contributors.',
   steps: ['Location', 'Your farm', 'Results'],
+  stepper: { label: 'Progress', progress: 'Step {{current}} of {{total}}', done: '(completed, go back)' },
   home: {
     title: 'Compare crop rotations with NASA climate data',
     intro:
@@ -21,6 +22,11 @@ export default {
     selected: 'Selected location',
     loadingName: 'Loading place name…',
     continue: 'Continue',
+    pickToContinue: 'Pick a point to continue',
+    loadingMap: 'Loading map…',
+    map: 'Map: click to choose your farm',
+    zoomIn: 'Zoom in',
+    zoomOut: 'Zoom out',
   },
   farm: {
     title: 'Your farm',

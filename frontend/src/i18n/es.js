@@ -1,7 +1,8 @@
 export default {
-  header: { tagline: 'Datos climáticos de NASA POWER', switchLanguage: 'View in English' },
+  header: { tagline: 'Datos climáticos de NASA POWER', language: 'Idioma' },
   footer: 'Apoya, no reemplaza, el criterio de los agricultores y técnicos locales. Datos del mapa © colaboradores de OpenStreetMap.',
   steps: ['Ubicación', 'Tu finca', 'Resultados'],
+  stepper: { label: 'Progreso', progress: 'Paso {{current}} de {{total}}', done: '(completado, volver)' },
   home: {
     title: 'Compara rotaciones de cultivo con datos climáticos de la NASA',
     intro:
@@ -21,6 +22,11 @@ export default {
     selected: 'Ubicación elegida',
     loadingName: 'Cargando nombre del lugar…',
     continue: 'Continuar',
+    pickToContinue: 'Elige un punto para continuar',
+    loadingMap: 'Cargando mapa…',
+    map: 'Mapa: haz clic para elegir tu finca',
+    zoomIn: 'Acercar',
+    zoomOut: 'Alejar',
   },
   farm: {
     title: 'Tu finca',

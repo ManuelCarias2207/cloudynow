@@ -73,3 +73,17 @@ npx source-map-explorer /tmp/perf-dist/assets/index-*.js --no-border-checks
 npx vite preview --outDir /tmp/perf-dist --port 4173
 npx lighthouse http://localhost:4173/zone --form-factor=mobile --throttling-method=simulate --only-categories=performance
 ```
+
+## Después de la identidad visual (tokens, fuentes del sistema, mapa diferido)
+
+| Medida | Baseline | Ahora | Diferencia |
+|---|---|---|---|
+| JS inicial (gzip) | 391.6 KB | 107.0 KB | −284.6 KB (sin el mapa: 106.6 → 107.0, +0.4 KB) |
+| CSS inicial (gzip) | 13.6 KB | 4.1 KB | −9.5 KB |
+| Chunk diferido del mapa `ZoneMap-*` | — | 284.0 KB JS + 10.0 KB CSS (gzip) | Solo se carga en `/zone` |
+| Fuentes externas | 343 KB (Inter, rsms.me) | 0 (fuente del sistema) | −343 KB |
+| Lighthouse `/zone`: Performance / LCP / CLS / TBT | 60 / 3.3 s / 0.024 / 1,520 ms | 74 / 1.7 s / 0.024 / 1,220 ms | — |
+| Peso total de `/zone` | 1,194 KB | 849 KB | −345 KB |
+| Lighthouse Accesibilidad `/zone` | — | 100 | — |
+
+El TBT que queda viene de inicializar MapLibre en `/zone`, por eso Performance sigue por debajo de 90.

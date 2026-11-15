@@ -14,7 +14,7 @@ export default function FarmPage() {
     <>
       <StepIndicator current={1} />
       <h1 className="mb-1 text-xl font-semibold">{t('farm.title')}</h1>
-      <p className="mb-4 text-sm text-zinc-500">{location.label ?? `${location.lat.toFixed(3)}, ${location.lon.toFixed(3)}`}</p>
+      <p className="mb-4 text-sm text-muted">{location.label ?? `${location.lat.toFixed(3)}, ${location.lon.toFixed(3)}`}</p>
       <FarmForm crops={currentCrops} onCropsChange={setCurrentCrops} priority={priority} onPriorityChange={setPriority} />
       <div className="mt-4 flex justify-between">
         <Button variant="secondary" onClick={() => navigate('/zone')}>

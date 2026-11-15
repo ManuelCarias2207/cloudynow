@@ -37,14 +37,14 @@ export default function ResultsPage() {
       <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
         <div>
           <h1 className="text-xl font-semibold">{t('results.title')}</h1>
-          <p className="text-sm text-zinc-500">{location.label ?? `${location.lat.toFixed(3)}, ${location.lon.toFixed(3)}`}</p>
+          <p className="text-sm text-muted">{location.label ?? `${location.lat.toFixed(3)}, ${location.lon.toFixed(3)}`}</p>
         </div>
         <Button variant="secondary" onClick={() => navigate('/farm')}>
           {t('results.change')}
         </Button>
       </div>
-      {state.status === 'loading' && <p className="text-sm text-zinc-500">{t('results.loading')}</p>}
-      {state.status === 'error' && <p className="text-sm text-red-700">{state.message}</p>}
+      {state.status === 'loading' && <p className="text-sm text-muted">{t('results.loading')}</p>}
+      {state.status === 'error' && <p className="text-sm text-danger">{state.message}</p>}
       {state.status === 'done' && (
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2">
@@ -54,7 +54,7 @@ export default function ResultsPage() {
               {t('results.summary', { rain: state.data.indicators.meanAnnualRainMm, days: state.data.indicators.longestDrySpellDays })}
             </Badge>
           </div>
-          <p className="text-sm text-zinc-600">{state.data.confidenceNote}</p>
+          <p className="text-sm text-muted">{state.data.confidenceNote}</p>
           <RotationComparison rotations={state.data.rotations} weights={state.data.weights} />
           <SupportNotice text={state.data.disclaimer} />
         </div>

@@ -6,7 +6,7 @@ export default function NotFoundPage() {
   return (
     <section className="py-16 text-center">
       <h1 className="text-xl font-semibold">{t('notFound.title')}</h1>
-      <Link to="/" className="mt-4 inline-block text-sm underline">
+      <Link to="/" className="mt-4 inline-block rounded-sm text-sm text-brand underline">
         {t('notFound.home')}
       </Link>
     </section>

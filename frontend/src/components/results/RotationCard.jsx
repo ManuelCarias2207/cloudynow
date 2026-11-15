@@ -22,12 +22,12 @@ function TextList({ items, tone }) {
 export default function RotationCard({ rotation, weights, best }) {
   const { t } = useTranslation();
   return (
-    <Card className={cn('flex flex-col gap-4', best && 'ring-2 ring-zinc-900')}>
+    <Card className={cn('flex flex-col gap-4', best && 'ring-2 ring-brand')}>
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="text-xs text-zinc-500">{t('results.option', { id: rotation.id })}</p>
+          <p className="text-xs text-muted">{t('results.option', { id: rotation.id })}</p>
           <h3 className="font-semibold">{rotation.name}</h3>
-          <p className="mt-1 text-sm text-zinc-600">{rotation.crops.map((crop) => crop.name).join(' → ')}</p>
+          <p className="mt-1 text-sm text-muted">{rotation.crops.map((crop) => crop.name).join(' → ')}</p>
         </div>
         <div className="text-right">
           <p className="text-3xl font-semibold">{toPercent(rotation.scores.total)}</p>
@@ -36,21 +36,21 @@ export default function RotationCard({ rotation, weights, best }) {
       </div>
       <ScoreBreakdown scores={rotation.scores} weights={weights} />
       <div>
-        <p className="mb-1 text-xs font-medium text-zinc-500">{t('results.benefits')}</p>
-        <TextList items={rotation.benefits} tone="bg-lime-500" />
+        <p className="mb-1 text-xs font-medium text-muted">{t('results.benefits')}</p>
+        <TextList items={rotation.benefits} tone="bg-brand" />
       </div>
       <div>
-        <p className="mb-1 text-xs font-medium text-zinc-500">{t('results.risks')}</p>
-        <TextList items={rotation.risks} tone="bg-amber-500" />
+        <p className="mb-1 text-xs font-medium text-muted">{t('results.risks')}</p>
+        <TextList items={rotation.risks} tone="bg-maize" />
       </div>
       <details className="text-sm">
-        <summary className="cursor-pointer text-xs font-medium text-zinc-500">{t('results.evidence')}</summary>
+        <summary className="cursor-pointer rounded-sm text-xs font-medium text-muted hover:text-ink">{t('results.evidence')}</summary>
         <div className="mt-2">
           <EvidenceList evidence={rotation.evidence} />
         </div>
       </details>
       <details className="text-sm">
-        <summary className="cursor-pointer text-xs font-medium text-zinc-500">{t('results.gaps')}</summary>
+        <summary className="cursor-pointer rounded-sm text-xs font-medium text-muted hover:text-ink">{t('results.gaps')}</summary>
         <div className="mt-2">
           <InfoGaps gaps={rotation.informationGaps} />
         </div>

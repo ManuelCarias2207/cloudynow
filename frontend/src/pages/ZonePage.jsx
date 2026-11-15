@@ -1,14 +1,15 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import StepIndicator from '../components/layout/StepIndicator.jsx';
-import ZoneMap from '../components/zone/ZoneMap.jsx';
 import ZoneCard from '../components/zone/ZoneCard.jsx';
 import Button from '../components/ui/Button.jsx';
 import { useFlow } from '../hooks/useFlow.js';
 import { searchPlaces, placeName } from '../services/api.js';
 import { EL_SALVADOR_BOUNDS } from '../lib/constants.js';
 import { isInsideBounds } from '../lib/utils.js';
+
+const ZoneMap = lazy(() => import('../components/zone/ZoneMap.jsx'));
 
 export default function ZonePage() {
   const navigate = useNavigate();
@@ -53,16 +54,17 @@ export default function ZonePage() {
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder={t('zone.searchPlaceholder')}
-          className="w-full rounded-xl bg-white px-4 py-2.5 text-sm ring-1 ring-zinc-200 outline-none focus:ring-zinc-900"
+          aria-label={t('zone.searchPlaceholder')}
+          className="min-h-11 w-full rounded-md bg-surface px-4 py-2.5 text-sm ring-1 ring-line-strong placeholder:text-muted"
         />
         <Button type="submit" variant="secondary">
           {t('zone.search')}
         </Button>
         {results.length > 0 && (
-          <ul className="absolute top-full z-10 mt-1 w-full overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-zinc-200">
+          <ul className="absolute top-full z-10 mt-1 w-full overflow-hidden rounded-md bg-surface shadow-pop ring-1 ring-line">
             {results.map((place) => (
               <li key={`${place.lat},${place.lon}`}>
-                <button type="button" onClick={() => pick(place)} className="w-full px-4 py-2 text-left text-sm hover:bg-zinc-100">
+                <button type="button" onClick={() => pick(place)} className="min-h-11 w-full cursor-pointer px-4 py-2 text-left text-sm hover:bg-surface-2">
                   {place.label}
                 </button>
               </li>
@@ -70,13 +72,21 @@ export default function ZonePage() {
           </ul>
         )}
       </form>
-      {message && <p className="mb-3 text-sm text-amber-700">{message}</p>}
+      {message && <p role="status" className="mb-3 rounded-md bg-maize-soft px-3 py-2 text-sm text-maize-ink">{message}</p>}
       <div className="grid gap-4 md:grid-cols-[1fr_280px]">
-        <ZoneMap selected={location} onPick={pick} />
+        <Suspense
+          fallback={
+            <div role="status" className="flex h-[420px] w-full items-center justify-center rounded-lg bg-surface-2 text-sm text-muted ring-1 ring-line">
+              {t('zone.loadingMap')}
+            </div>
+          }
+        >
+          <ZoneMap selected={location} onPick={pick} />
+        </Suspense>
         <div className="flex flex-col gap-4">
           <ZoneCard location={location} />
           <Button disabled={!location} onClick={() => navigate('/farm')}>
-            {t('zone.continue')}
+            {location ? t('zone.continue') : t('zone.pickToContinue')}
           </Button>
         </div>
       </div>
