@@ -1,4 +1,4 @@
-# Siembra Satelital — Backend
+# Cloudynow — Backend
 
 Serverless API (Vercel, Node.js ES modules) that compares three crop rotations for small farms in
 El Salvador's Dry Corridor using NASA POWER daily climate data. The tool **supports** the farmer's

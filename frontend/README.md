@@ -1,4 +1,4 @@
-# Siembra Satelital — Frontend
+# Cloudynow — Frontend
 
 React + Vite + Tailwind + MapLibre GL. Flow: pick a point on the map (or search a place) →
 choose current crops and priority → compare three rotations from the backend.

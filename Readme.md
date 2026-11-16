@@ -1,4 +1,4 @@
-# Siembra Satelital
+# Cloudynow
 
 Web tool that compares crop rotations with NASA satellite climate data for small farmers in
 El Salvador's Dry Corridor. Built for NASA Space Apps Challenge San Salvador (challenge: *Cambio de campo*).

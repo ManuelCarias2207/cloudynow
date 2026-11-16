@@ -1,4 +1,4 @@
-# Siembra Satelital — Reparto de trabajo (domingo)
+# Cloudynow — Reparto de trabajo (domingo)
 
 Space Apps San Salvador, reto "Cambio de campo". La entrega cierra el **domingo a las 11:59 PM**. Fuente del plan:
 `context/nasa.simpler.json`. Qué hace el backend: `context/backend_explicacion.txt`.

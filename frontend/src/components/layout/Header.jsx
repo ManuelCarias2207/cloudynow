@@ -9,7 +9,7 @@ export default function Header() {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2.5">
         <Link to="/" className="flex items-center gap-2 rounded-md font-semibold text-ink">
           <img src="/favicon.svg" alt="" width="28" height="28" className="h-7 w-7" />
-          Siembra Satelital
+          Cloudynow
         </Link>
         <div className="flex items-center gap-3">
           <span className="hidden text-xs text-muted sm:inline">{t('header.tagline')}</span>
