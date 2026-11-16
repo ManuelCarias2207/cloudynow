@@ -1,0 +1,70 @@
+/* Range input in the Arc UI style: 6 px track filled up to the thumb, 22 px thumb with a soft shadow. */
+.arc-slider {
+  --track: 6px;
+  --thumb: 22px;
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+
+.arc-slider::-webkit-slider-runnable-track {
+  height: var(--track);
+  border-radius: var(--radius-full);
+  background: linear-gradient(to right, var(--color-brand) var(--fill), var(--color-surface-2) var(--fill));
+}
+
+.arc-slider::-moz-range-track {
+  height: var(--track);
+  border-radius: var(--radius-full);
+  background: linear-gradient(to right, var(--color-brand) var(--fill), var(--color-surface-2) var(--fill));
+}
+
+.arc-slider::-webkit-slider-thumb {
+  width: var(--thumb);
+  height: var(--thumb);
+  margin-top: calc((var(--track) - var(--thumb)) / 2);
+  appearance: none;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--color-white);
+  box-shadow: 0 0 0 1px var(--color-line-strong), var(--shadow-resting);
+  transition: scale 150ms var(--ease-standard), box-shadow 150ms var(--ease-standard);
+}
+
+.arc-slider::-moz-range-thumb {
+  width: var(--thumb);
+  height: var(--thumb);
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--color-white);
+  box-shadow: 0 0 0 1px var(--color-line-strong), var(--shadow-resting);
+  transition: scale 150ms var(--ease-standard), box-shadow 150ms var(--ease-standard);
+}
+
+.arc-slider:active::-webkit-slider-thumb {
+  scale: 1.08;
+  box-shadow: 0 0 0 1px var(--color-brand), var(--shadow-raised);
+}
+
+.arc-slider:active::-moz-range-thumb {
+  scale: 1.08;
+  box-shadow: 0 0 0 1px var(--color-brand), var(--shadow-raised);
+}
+
+.arc-slider:focus-visible {
+  outline: none;
+}
+
+.arc-slider:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+.arc-slider:focus-visible::-moz-range-thumb {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}

@@ -10,9 +10,9 @@ export default function StepIndicator({ current }) {
   const { t } = useTranslation();
   const steps = t('steps', { returnObjects: true });
   return (
-    <nav aria-label={t('stepper.label')} className="mb-6">
-      <p className="mb-2 text-xs font-medium text-muted">{t('stepper.progress', { current: current + 1, total: steps.length })}</p>
-      <ol className="flex flex-wrap gap-2 text-sm">
+    <nav aria-label={t('stepper.label')} className="mb-3 flex shrink-0 items-center gap-3">
+      <p className="hidden shrink-0 text-xs font-medium text-muted sm:block">{t('stepper.progress', { current: current + 1, total: steps.length })}</p>
+      <ol className="flex min-w-0 gap-1.5 text-xs sm:gap-2 sm:text-sm">
         {steps.map((step, index) => {
           const done = index < current;
           const active = index === current;
@@ -28,7 +28,7 @@ export default function StepIndicator({ current }) {
               {done ? <CheckIcon className="h-3.5 w-3.5" /> : index + 1}
             </span>
           );
-          const base = 'flex min-h-11 items-center gap-2 rounded-full py-1.5 pr-4 pl-1.5';
+          const base = 'flex min-h-10 items-center gap-2 rounded-full py-1 pr-3 pl-1 whitespace-nowrap transition-colors duration-150 sm:pr-4';
           return (
             <li key={step}>
               {done ? (
