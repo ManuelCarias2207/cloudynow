@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Area, CartesianGrid, ComposedChart, Line, ReferenceArea, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Area, CartesianGrid, ComposedChart, Line, ReferenceArea, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import {
   AXIS_PROPS,
   CHART_COLORS,
@@ -7,7 +7,8 @@ import {
   LegendItem,
   useMonthNames,
   useNumberFormat,
-  useActiveMonth,
+  ChartTip,
+  HoverLayer,
   usePrefersReducedMotion,
 } from './chartUtils.jsx';
 
@@ -18,12 +19,33 @@ function mean(values) {
   return valid.length ? valid.reduce((sum, value) => sum + value, 0) / valid.length : null;
 }
 
+/** Hover box: soil wetness and temperature of the month, in plain words. */
+function SoilTip({ entry, bare, showSoil }) {
+  const { t } = useTranslation();
+  const months = useMonthNames();
+  const format = useNumberFormat();
+  const soil = showSoil && entry.soilPct !== null;
+  const soilNote = !soil ? null : entry.soilPct < 50 ? t('chartTip.soilLow') : entry.soilPct < 65 ? t('chartTip.soilMid') : t('chartTip.soilHigh');
+  return (
+    <ChartTip
+      title={months.long(entry.month)}
+      tag={bare.has(entry.month) ? t('charts.bareTag') : null}
+      lines={[
+        soil ? t('chartTip.soil', { pct: entry.soilPct }) : t('chartTip.temp', { temp: format.decimal(entry.tempC) }),
+        soilNote,
+        soil && t('chartTip.temp', { temp: format.decimal(entry.tempC) }),
+        entry.tempC >= 28 && t('chartTip.hot'),
+        bare.has(entry.month) && t('chartTip.bare'),
+      ]}
+    />
+  );
+}
+
 export default function SoilMoistureChart({ monthly, bareWindowMonths, hasSoilMoisture, height = 140 }) {
   const { t } = useTranslation();
   const months = useMonthNames();
   const format = useNumberFormat();
   const animate = !usePrefersReducedMotion();
-  const [activeMonth, tooltipContent] = useActiveMonth();
 
   const data = monthly.map((entry) => ({
     month: entry.month,
@@ -31,22 +53,20 @@ export default function SoilMoistureChart({ monthly, bareWindowMonths, hasSoilMo
     soilPct: entry.soilMoisture === null ? null : Math.round(entry.soilMoisture * 100),
   }));
   const showSoil = hasSoilMoisture && data.some((entry) => entry.soilPct !== null);
-  const active = data.find((entry) => entry.month === activeMonth);
   const bare = new Set(bareWindowMonths);
-  const shown = active ?? { soilPct: mean(data.map((entry) => entry.soilPct)), tempC: mean(data.map((entry) => entry.tempC)) };
+  const shown = { soilPct: mean(data.map((entry) => entry.soilPct)), tempC: mean(data.map((entry) => entry.tempC)) };
   const tempText = `${format.decimal(shown.tempC)} °C`;
 
   return (
     <figure className="space-y-3">
       <ChartHeadline
         title={t('charts.soil.title')}
-        label={active ? months.long(active.month) : showSoil ? t('charts.soil.average') : t('charts.soil.averageTemp')}
+        label={showSoil ? t('charts.soil.average') : t('charts.soil.averageTemp')}
         value={showSoil ? `${format.integer(shown.soilPct)}%` : tempText}
         unit={showSoil ? `· ${tempText}` : null}
-        tag={active && bare.has(active.month) ? t('charts.bareTag') : null}
-        caption={active ? null : showSoil ? t('charts.soil.scale') : t('charts.soil.missing')}
+        caption={showSoil ? t('charts.soil.scale') : t('charts.soil.missing')}
       />
-      <div aria-hidden="true">
+      <HoverLayer left={36} right={showSoil ? 36 : 0} render={(month) => <SoilTip entry={data.find((item) => item.month === month)} bare={bare} showSoil={showSoil} />}>
         <ResponsiveContainer width="100%" height={height}>
           <ComposedChart data={data} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
             <defs>
@@ -78,11 +98,6 @@ export default function SoilMoistureChart({ monthly, bareWindowMonths, hasSoilMo
             />
             <YAxis yAxisId="temp" width={36} domain={['dataMin - 2', 'dataMax + 2']} tickCount={4} unit="°" allowDecimals={false} {...AXIS_PROPS} />
             <YAxis yAxisId="soil" orientation="right" width={36} domain={[0, 100]} ticks={[0, 50, 100]} unit="%" hide={!showSoil} {...AXIS_PROPS} />
-            <Tooltip
-              cursor={{ stroke: CHART_COLORS.axis, strokeDasharray: '3 3' }}
-              wrapperStyle={{ display: 'none' }}
-              content={tooltipContent}
-            />
             {showSoil && (
               <Area
                 yAxisId="soil"
@@ -91,7 +106,7 @@ export default function SoilMoistureChart({ monthly, bareWindowMonths, hasSoilMo
                 stroke={CHART_COLORS.soil}
                 strokeWidth={2}
                 fill="url(#soil-fill)"
-                activeDot={{ r: 4 }}
+                activeDot={false}
                 isAnimationActive={animate}
                 animationDuration={800}
               />
@@ -104,13 +119,13 @@ export default function SoilMoistureChart({ monthly, bareWindowMonths, hasSoilMo
               strokeWidth={2}
               strokeDasharray="5 4"
               dot={false}
-              activeDot={{ r: 4 }}
+              activeDot={false}
               isAnimationActive={animate}
               animationDuration={800}
             />
           </ComposedChart>
         </ResponsiveContainer>
-      </div>
+      </HoverLayer>
       <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
         {showSoil && <LegendItem color={CHART_COLORS.soil} shape="line" label={t('charts.soil.soil')} />}
         <LegendItem color={CHART_COLORS.temp} shape="dashed" label={t('charts.soil.temp')} />

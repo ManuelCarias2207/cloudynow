@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 export const CHART_COLORS = {
@@ -107,5 +107,58 @@ export function LegendItem({ color, shape = 'block', label }) {
       </span>
       {label}
     </li>
+  );
+}
+
+/** Floating box that follows the cursor over a chart: month title and plain-language lines. */
+export function ChartTip({ title, tag, lines }) {
+  return (
+    <div className="pointer-events-none w-64 rounded-md bg-ink px-3 py-2.5 text-xs text-cream shadow-raised">
+      <p className="flex items-center justify-between gap-2 text-sm font-semibold">
+        {title}
+        {tag && <span className="rounded-full bg-maize px-2 py-0.5 text-[0.7rem] font-medium text-ink">{tag}</span>}
+      </p>
+      <ul className="mt-1 grid gap-1 text-pretty">
+        {lines.filter(Boolean).map((line, index) => (
+          <li key={index} className={index === 0 ? 'font-medium text-white' : 'text-cream/85'}>
+            {line}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** Recharts tooltip props for a box that follows the cursor without sliding or highlighting. */
+export const STILL_TOOLTIP = { cursor: false, isAnimationActive: false, offset: 18, allowEscapeViewBox: { x: false, y: true }, wrapperStyle: { zIndex: 20, outline: 'none' } };
+
+const TIP_WIDTH = 256;
+
+/**
+ * Wraps a 12-month chart and shows `render(month)` in a box next to the cursor. The hover state lives here,
+ * so the chart itself never re-renders (and never re-animates) while the mouse moves.
+ * `left`/`right` are the axis widths at each side of the plot area.
+ */
+export function HoverLayer({ left = 0, right = 0, render, children }) {
+  const ref = useRef(null);
+  const [hover, setHover] = useState(null);
+  const onMove = (event) => {
+    const rect = ref.current.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const plot = rect.width - left - right;
+    const month = Math.floor(((x - left) / plot) * 12) + 1;
+    if (month < 1 || month > 12) return setHover(null);
+    const flip = x + 16 + TIP_WIDTH > rect.width;
+    setHover({ month, x: flip ? x - 16 - TIP_WIDTH : x + 16, y: Math.max(event.clientY - rect.top - 24, 0) });
+  };
+  return (
+    <div ref={ref} className="relative" onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
+      <div aria-hidden="true">{children}</div>
+      {hover && (
+        <div className="pointer-events-none absolute z-30" style={{ left: hover.x, top: hover.y, width: TIP_WIDTH }}>
+          {render(hover.month)}
+        </div>
+      )}
+    </div>
   );
 }

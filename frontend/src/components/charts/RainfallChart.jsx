@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import {
   AXIS_PROPS,
   CHART_COLORS,
@@ -7,34 +7,52 @@ import {
   LegendItem,
   useMonthNames,
   useNumberFormat,
-  useActiveMonth,
+  ChartTip,
+  HoverLayer,
   usePrefersReducedMotion,
 } from './chartUtils.jsx';
+
+/** Hover box: rain of the month compared with a typical month, in plain words. */
+function RainTip({ entry, average, bare, wettest, driest }) {
+  const { t } = useTranslation();
+  const months = useMonthNames();
+  const format = useNumberFormat();
+  const ratio = entry.rainMm / average;
+  const compare = ratio > 1.15 ? 'wetter' : ratio < 0.85 ? 'drier' : 'same';
+  return (
+    <ChartTip
+      title={months.long(entry.month)}
+      tag={bare.has(entry.month) ? t('charts.bareTag') : null}
+      lines={[
+        t('chartTip.rain', { mm: format.integer(entry.rainMm) }),
+        entry.month === wettest ? t('chartTip.wettest') : entry.month === driest ? t('chartTip.driest') : t(`chartTip.vsAvg_${compare}`, { avg: format.integer(average) }),
+        bare.has(entry.month) && t('chartTip.bare'),
+      ]}
+    />
+  );
+}
 
 export default function RainfallChart({ monthly, bareWindowMonths, height = 140 }) {
   const { t } = useTranslation();
   const months = useMonthNames();
   const format = useNumberFormat();
   const animate = !usePrefersReducedMotion();
-  const [activeMonth, tooltipContent] = useActiveMonth();
 
   const bare = new Set(bareWindowMonths);
   const total = monthly.reduce((sum, entry) => sum + (entry.rainMm ?? 0), 0);
   const average = total / monthly.length;
-  const active = monthly.find((entry) => entry.month === activeMonth);
   const sorted = [...monthly].sort((a, b) => b.rainMm - a.rainMm);
 
   return (
     <figure className="space-y-3">
       <ChartHeadline
         title={t('charts.rain.title')}
-        label={active ? months.long(active.month) : t('charts.rain.total')}
-        value={format.integer(active ? active.rainMm : total)}
+        label={t('charts.rain.total')}
+        value={format.integer(total)}
         unit="mm"
-        tag={active && bare.has(active.month) ? t('charts.bareTag') : null}
-        caption={active ? null : t('charts.rain.hint')}
+        caption={t('charts.rain.hint')}
       />
-      <div aria-hidden="true">
+      <HoverLayer left={0} right={36} render={(month) => <RainTip entry={monthly.find((item) => item.month === month)} average={average} bare={bare} wettest={sorted[0].month} driest={sorted[sorted.length - 1].month} />}>
         <ResponsiveContainer width="100%" height={height}>
           <BarChart data={monthly} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
             <CartesianGrid vertical={false} stroke={CHART_COLORS.grid} strokeDasharray="2 4" />
@@ -46,23 +64,17 @@ export default function RainfallChart({ monthly, bareWindowMonths, height = 140 
               strokeDasharray="3 3"
               label={{ value: t('charts.avg'), position: 'insideTopLeft', fontSize: 10, fill: CHART_COLORS.axis }}
             />
-            <Tooltip
-              cursor={{ fill: 'var(--color-surface-2)', opacity: 0.6 }}
-              wrapperStyle={{ display: 'none' }}
-              content={tooltipContent}
-            />
-            <Bar dataKey="rainMm" maxBarSize={28} radius={[3, 3, 0, 0]} isAnimationActive={animate} animationDuration={700}>
+            <Bar dataKey="rainMm" maxBarSize={28} radius={[3, 3, 0, 0]} activeBar={false} isAnimationActive={animate} animationDuration={700}>
               {monthly.map((entry) => (
                 <Cell
                   key={entry.month}
                   fill={bare.has(entry.month) ? CHART_COLORS.bare : CHART_COLORS.rain}
-                  fillOpacity={activeMonth && activeMonth !== entry.month ? 0.45 : 1}
                 />
               ))}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
-      </div>
+      </HoverLayer>
       <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
         <LegendItem color={CHART_COLORS.rain} label={t('charts.rain.series')} />
         <LegendItem color={CHART_COLORS.bare} label={t('charts.bareLegend')} />
