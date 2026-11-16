@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import Card from '../ui/Card.jsx';
+import { SkeletonBlock } from '../ui/Skeleton.jsx';
 import { cn } from '../../lib/utils.js';
 
 /** Shows the chosen point and a toggle for the NASA POWER cell its climate data comes from. */
@@ -11,7 +12,7 @@ export default function ZoneCard({ location, showCell, onToggleCell }) {
   return (
     <Card>
       <p className="text-xs text-muted">{t('zone.selected')}</p>
-      {location.naming && <p className="mt-1 text-sm text-muted">{t('zone.loadingName')}</p>}
+      {location.naming && <SkeletonBlock label={t('zone.loadingName')} className="mt-2 h-4 w-2/3" />}
       {location.label && <p className="mt-1 font-medium">{location.label}</p>}
       <p className={location.label ? 'mt-1 text-xs text-muted' : 'mt-1 font-medium'}>
         {location.lat.toFixed(5)}, {location.lon.toFixed(5)}

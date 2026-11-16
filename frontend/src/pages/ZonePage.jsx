@@ -104,9 +104,9 @@ export default function ZonePage() {
   return (
     <>
       <StepIndicator current={0} />
-      <h1 className="mb-4 text-xl font-semibold">{t('zone.title')}</h1>
-      <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_320px] md:items-start">
-        <div className="h-[300px] md:h-[clamp(320px,52vh,420px)]">
+      <h1 className="mb-3 shrink-0 text-xl font-semibold">{t('zone.title')}</h1>
+      <div className="flex min-h-0 flex-1 flex-col gap-3 md:grid md:grid-cols-[minmax(0,1fr)_320px] md:gap-4">
+        <div className="min-h-48 flex-1 md:h-full md:min-h-0">
           {mapReady ? (
             <Suspense fallback={mapPlaceholder}>
               <ZoneMap selected={location} onPick={pick} showCell={showCell} />
@@ -115,19 +115,21 @@ export default function ZonePage() {
             mapPlaceholder
           )}
         </div>
-        <div className="flex flex-col gap-4">
-          <PlaceSearch onPick={pick} />
-          <Button variant="secondary" onClick={locate} disabled={locating} aria-live="polite" className="self-start">
-            <LocateIcon className="size-4" />
-            {locateLabel}
-          </Button>
-          {message && (
-            <p role="alert" className="rounded-md bg-maize-soft px-3 py-2 text-sm text-maize-ink">
-              {message}
-            </p>
-          )}
-          <ZoneCard location={location} showCell={showCell} onToggleCell={() => setShowCell((on) => !on)} />
-          <Button disabled={!location} onClick={() => navigate('/farm')}>
+        <div className="flex max-h-[55%] shrink-0 flex-col gap-3 md:max-h-none md:min-h-0">
+          <div className="-mx-1 flex min-h-0 flex-col gap-3 overflow-y-auto px-1 pb-1">
+            <PlaceSearch onPick={pick} />
+            <Button variant="secondary" onClick={locate} disabled={locating} aria-live="polite" className="self-start">
+              <LocateIcon className="size-4" />
+              {locateLabel}
+            </Button>
+            {message && (
+              <p role="alert" className="rounded-md bg-maize-soft px-3 py-2 text-sm text-maize-ink">
+                {message}
+              </p>
+            )}
+            <ZoneCard location={location} showCell={showCell} onToggleCell={() => setShowCell((on) => !on)} />
+          </div>
+          <Button disabled={!location} onClick={() => navigate('/farm')} className="shrink-0 md:mt-auto">
             {location ? t('zone.continue') : t('zone.pickToContinue')}
           </Button>
         </div>
